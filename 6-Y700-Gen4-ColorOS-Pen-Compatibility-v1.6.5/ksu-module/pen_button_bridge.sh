@@ -16,6 +16,7 @@ fi
 echo $$ > "$PIDFILE"
 
 send_single_click() {
+    settings put global y700_pen_last_button_event "single:$(date +%s)" 2>/dev/null
     ROUTE=$(settings get global y700_pen_single_button_route 2>/dev/null)
     [ "$ROUTE" = "null" ] || [ -z "$ROUTE" ] && ROUTE=1
     if [ "$ROUTE" = "0" ]; then
@@ -44,6 +45,7 @@ send_single_click() {
 }
 
 send_double_click() {
+    settings put global y700_pen_last_button_event "double:$(date +%s)" 2>/dev/null
     MODE=$(settings get global ipe_pencil_double_click 2>/dev/null)
     [ "$MODE" = "null" ] || [ -z "$MODE" ] && MODE=1
     if [ "$MODE" = "4" ]; then
@@ -82,9 +84,13 @@ while true; do
 
     log -t "$TAG" "listening on $DEVICE"
     getevent -l "$DEVICE" 2>/dev/null | while IFS= read -r LINE; do
-        case "$LINE" in
-            *MSC_SCAN*000c0600*) send_single_click ;;
-            *MSC_SCAN*000c0601*) send_double_click ;;
+        # ColorOS toybox output is not stable across boots: the event label can
+        # change case and the scan code can lose leading zeroes.  Normalize the
+        # line and match the HID usage suffix instead of one exact rendering.
+        NORMALIZED=$(printf '%s\n' "$LINE" | tr '[:upper:]' '[:lower:]')
+        case "$NORMALIZED" in
+            *msc_scan*c0600*) send_single_click ;;
+            *msc_scan*c0601*) send_double_click ;;
         esac
     done
     sleep 1

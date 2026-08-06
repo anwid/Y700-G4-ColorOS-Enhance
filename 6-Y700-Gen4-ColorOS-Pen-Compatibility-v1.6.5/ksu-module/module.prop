@@ -1,6 +1,6 @@
 id=NEC-9QHD1-ActivatePen
 name=Y700 Gen4 ColorOS Pen Compatibility
-version=v1.6.3-safe
-versionCode=163
+version=v1.6.5-safe
+versionCode=165
 author=Eternalcat + Lorana/Codex integration
 description=Safe Lenovo pen integration for Y700 Gen4 ColorOS: game-exit pen restoration, writable support_pen, bundled control app, hover cursor, button routing, and 800ms IME fallback. No vendor HAL injection.

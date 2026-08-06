@@ -261,7 +261,9 @@ KSU 模块会自动安装桌面应用：
 
 在 KernelSU 中安装：
 
-`6-Y700-Gen4-ColorOS-Pen-Compatibility-v1.6.3-KSU.zip`
+`6-Y700-Gen4-ColorOS-Pen-Compatibility-v1.6.5-KSU.zip`
+
+v1.6.5 修复了按钮桥对 `getevent` 标签大小写过于敏感、导致双击扫描码 `0601` 偶发未转发的问题，并包含 v1.6.4 的无障碍服务自动恢复修复。
 
 建议安装后暂时不要重启，继续安装下面的 6.5 模块，最后只完整重启一次。
 
@@ -812,7 +814,7 @@ Windows 用户可以先执行完整 logcat，再使用 `findstr` 过滤相同关
 3. 进入系统后停用或删除旧版手写笔模块。
 4. 完整重启。
 
-v1.6.3 不包含：
+v1.6.5 不包含：
 
 - `system/`
 - `vendor/`

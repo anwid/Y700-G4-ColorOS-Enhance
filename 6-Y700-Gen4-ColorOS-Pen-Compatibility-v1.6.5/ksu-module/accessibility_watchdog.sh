@@ -19,21 +19,25 @@ while [ "$(getprop sys.boot_completed)" != '1' ]; do sleep 2; done
 
 # Never touch the audited accessibility setting unless the system_server hook
 # that filters only this module's warning has positively armed this boot.
-READY=0
-CHECK=0
-while [ "$CHECK" -lt 15 ]; do
-    if grep -q 'Y700PenUI: scoped ColorOS accessibility-warning filter armed' \
-        /data/adb/lspd/log/modules_*.log 2>/dev/null; then
-        READY=1
+# Vector's private log directory is not readable from KernelSU's service
+# domain on this ColorOS build.  Wait for the dedicated whitelist module to be
+# enabled and scoped to system_server, then give Vector time to finish its
+# boot-time injection.  Do not give up after a fixed window: a permanent exit
+# here would leave the service disabled until the next reboot.
+VECTOR_CLI=/data/adb/lspd/cli
+while true; do
+    if pm path dev.lorana.coloros.fraudwhitelist >/dev/null 2>&1 \
+        && [ -x "$VECTOR_CLI" ] \
+        && "$VECTOR_CLI" modules ls 2>/dev/null \
+            | grep -q '^dev\.lorana\.coloros\.fraudwhitelist .*enabled' \
+        && "$VECTOR_CLI" scope ls dev.lorana.coloros.fraudwhitelist 2>/dev/null \
+            | grep -q '^system[[:space:]]'; then
+        sleep 10
         break
     fi
-    sleep 2
-    CHECK=$((CHECK + 1))
+    sleep 5
 done
-if [ "$READY" != '1' ]; then
-    log -t Y700PenCompat "accessibility watchdog stopped: warning filter not armed"
-    exit 0
-fi
+log -t Y700PenCompat "accessibility watchdog armed after whitelist scope confirmation"
 
 pm grant dev.lorana.y700.colorospenui.xposed android.permission.WRITE_SECURE_SETTINGS 2>/dev/null
 
