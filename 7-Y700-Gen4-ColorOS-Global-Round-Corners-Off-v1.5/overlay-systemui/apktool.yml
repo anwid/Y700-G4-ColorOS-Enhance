@@ -1,0 +1,16 @@
+version: 3.0.3
+apkFileName: Y700RoundCornersOffSystemUIOverlay.apk
+usesFramework:
+  ids:
+  - 1
+  - 127
+sdkInfo:
+  minSdkVersion: 36
+  targetSdkVersion: 29
+versionInfo:
+  versionCode: 2
+  versionName: 1.1
+resourcesInfo:
+  packageId: 127
+doNotCompress:
+- arsc

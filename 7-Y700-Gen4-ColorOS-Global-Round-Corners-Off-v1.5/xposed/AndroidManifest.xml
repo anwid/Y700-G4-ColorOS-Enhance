@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="dev.lorana.y700.roundcornersoff.xposed"
+    android:versionCode="4"
+    android:versionName="1.3">
+    <uses-sdk android:minSdkVersion="28" android:targetSdkVersion="29" />
+    <application
+        android:allowBackup="false"
+        android:hasCode="true"
+        android:icon="@drawable/ic_launcher"
+        android:roundIcon="@drawable/ic_launcher"
+        android:label="Y700 全局圆角关闭">
+        <meta-data android:name="xposedmodule" android:value="true" />
+        <meta-data android:name="xposeddescription" android:value="关闭 Y700 ColorOS 移植 ROM 的全局软件圆角遮罩" />
+        <meta-data android:name="xposedminversion" android:value="93" />
+    </application>
+</manifest>

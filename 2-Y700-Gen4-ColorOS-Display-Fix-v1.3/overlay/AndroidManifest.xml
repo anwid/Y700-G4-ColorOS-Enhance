@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="dev.lorana.y700.displayfix.overlay"
+    android:compileSdkVersion="36"
+    android:compileSdkVersionCodename="16">
+    <application
+        android:allowBackup="false"
+        android:extractNativeLibs="false"
+        android:hasCode="false" />
+    <overlay
+        android:isStatic="true"
+        android:priority="9999"
+        android:targetPackage="android" />
+</manifest>

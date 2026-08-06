@@ -1,0 +1,17 @@
+* text=auto
+
+# Android/KernelSU scripts must keep Unix line endings.
+*.sh text eol=lf
+module.prop text eol=lf
+system.prop text eol=lf
+support_pen text eol=lf
+xposed_init text eol=lf
+xposed_scope text eol=lf
+scope.list text eol=lf
+
+# Prebuilt installable artifacts are binary.
+*.apk binary
+*.so binary
+*.jar binary
+*.png binary
+*.jpg binary

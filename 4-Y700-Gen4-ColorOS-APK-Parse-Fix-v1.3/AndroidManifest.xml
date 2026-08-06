@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="dev.lorana.coloros.apkparsefix"
+    android:versionCode="4"
+    android:versionName="1.3">
+    <uses-sdk android:minSdkVersion="28" android:targetSdkVersion="29" />
+    <application
+        android:allowBackup="false"
+        android:hasCode="true"
+        android:icon="@drawable/ic_module"
+        android:label="ColorOS APK Parse Fix">
+        <meta-data android:name="xposedmodule" android:value="true" />
+        <meta-data android:name="xposeddescription" android:value="Narrow workaround for false resources.arsc allocation errors during ColorOS system_server package parsing." />
+        <meta-data android:name="xposedminversion" android:value="93" />
+        <!-- Vector maps legacy package "android" to its special system_server scope "system". -->
+        <meta-data android:name="xposedscope" android:value="android" />
+    </application>
+</manifest>

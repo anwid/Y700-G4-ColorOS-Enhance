@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="config_roundedCornerBottomLeftDrawableId">
+        <item>oplus_notification_action_background</item>
+        <item>oplus_notification_action_background</item>
+    </string-array>
+    <string-array name="config_roundedCornerBottomRightDrawableId">
+        <item>oplus_notification_action_background</item>
+        <item>oplus_notification_action_background</item>
+    </string-array>
+    <string-array name="config_roundedCornerTopLeftDrawableId">
+        <item>oplus_notification_action_background</item>
+        <item>oplus_notification_action_background</item>
+    </string-array>
+    <string-array name="config_roundedCornerTopRightDrawableId">
+        <item>oplus_notification_action_background</item>
+        <item>oplus_notification_action_background</item>
+    </string-array>
+</resources>

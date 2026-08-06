@@ -1,0 +1,5 @@
+# Stop AudioEffectCenter from starting its uninitializable AudioX global effect.
+ro.oplus.audio.effect.type=none
+
+# Restore the stock Qualcomm/Lenovo dependent-calibration path for analog headsets.
+vendor.audio.volume.headset.gain.depcal=true

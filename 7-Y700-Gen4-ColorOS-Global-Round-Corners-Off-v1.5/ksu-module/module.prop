@@ -1,0 +1,6 @@
+id=y700_coloros_round_corners_off
+name=Y700 ColorOS Global Round Corners Off
+version=1.5
+versionCode=6
+author=Codex for lorana
+description=Optional module that disables Android and ColorOS rounded-corner providers on Lenovo Y700 Gen 4 ColorOS ports. Includes a SystemUI-only recommended Xposed scope and automatic Vector configuration. Requires meta-overlayfs.

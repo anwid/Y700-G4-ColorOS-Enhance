@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="dev.lorana.coloros.fraudwhitelist"
+    android:versionCode="1"
+    android:versionName="1.0.0">
+    <uses-sdk android:minSdkVersion="28" android:targetSdkVersion="29" />
+    <uses-permission android:name="android.permission.WRITE_SECURE_SETTINGS" />
+    <application
+        android:allowBackup="false"
+        android:hasCode="true"
+        android:icon="@drawable/ic_launcher"
+        android:label="ColorOS 反诈告警白名单">
+        <meta-data android:name="xposedmodule" android:value="true" />
+        <meta-data android:name="xposeddescription" android:value="按应用白名单忽略 ColorOS 无障碍权限变更告警" />
+        <meta-data android:name="xposedminversion" android:value="93" />
+        <meta-data android:name="xposedscope" android:value="android" />
+        <activity android:name=".WhitelistActivity" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>

@@ -1,0 +1,6 @@
+id=y700_coloros_stock_thermal
+name=Y700 Gen 4 ColorOS Stock Thermal
+version=1.1
+versionCode=11
+author=Codex for lorana
+description=Restores only the stock Lenovo TB322 ZUXOS CPU, GPU and battery thermal-engine profiles, with the vendor SELinux context required by thermal-engine. Does not change display FPS policy, refresh rate, touch sampling, HAL, kernel or DTBO.

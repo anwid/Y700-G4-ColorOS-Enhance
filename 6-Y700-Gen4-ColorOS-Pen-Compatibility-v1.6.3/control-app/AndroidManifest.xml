@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="dev.lorana.y700.colorospenui.xposed"
+    android:versionCode="20"
+    android:versionName="0.5.1">
+    <uses-sdk android:minSdkVersion="28" android:targetSdkVersion="29" />
+    <uses-permission android:name="android.permission.WRITE_SECURE_SETTINGS" />
+    <application
+        android:allowBackup="false"
+        android:hasCode="true"
+        android:icon="@drawable/ic_launcher"
+        android:roundIcon="@drawable/ic_launcher"
+        android:label="Y700 手写笔控制">
+        <meta-data android:name="xposedmodule" android:value="true" />
+        <meta-data android:name="xposeddescription" android:value="ColorOS pen UI bridge and stylus handwriting IME fallback" />
+        <meta-data android:name="xposedminversion" android:value="93" />
+        <meta-data android:name="xposedscope" android:value="android;com.oplus.ipemanager" />
+        <activity android:name=".SettingsActivity" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <service
+            android:name=".PenAccessibilityService"
+            android:exported="true"
+            android:label="Y700 手写输入法自动切换"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.accessibilityservice"
+                android:resource="@xml/pen_accessibility_service" />
+        </service>
+    </application>
+</manifest>

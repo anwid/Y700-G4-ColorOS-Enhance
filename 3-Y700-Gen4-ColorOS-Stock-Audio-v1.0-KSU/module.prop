@@ -1,0 +1,6 @@
+id=y700_coloros_stock_audio
+name=Y700 Gen 4 ColorOS Stock Audio Behavior
+version=1.0
+versionCode=10
+author=Codex for lorana
+description=Restores the Lenovo ZUXOS wired-headset music curve and headset dependent gain calibration, while preventing the broken OPlus AudioX service from starting. Does not modify Bluetooth, USB, speaker, HAL or DSP.

@@ -1,0 +1,6 @@
+id=y700_coloros_display_fix
+name=Y700 ColorOS Display Fix
+version=1.3
+versionCode=4
+author=Codex for lorana
+description=Removes the incorrect OPPO Pad Mini display cutout and vendor screen-hole property so the portrait clock and notification icons start from the left on Lenovo Y700 Gen 4. Rounded corners are handled by a separate optional module.
