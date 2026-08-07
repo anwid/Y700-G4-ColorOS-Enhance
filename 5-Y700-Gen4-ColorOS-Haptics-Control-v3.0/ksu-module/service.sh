@@ -64,6 +64,16 @@ if [ "$schema" -lt 3 ] 2>/dev/null; then
     settings put global y700_haptic_schema 3
     echo "Split legacy gesture settings into back and launcher/multitask categories"
 fi
+if [ "$schema" -lt 5 ] 2>/dev/null; then
+    # v3 defaults to the always-on ZUXOS compatibility bridge. Preserve all
+    # editor values, but turn legacy custom overrides off once during upgrade.
+    for id in back multitask lockscreen touch ime hardware physical notification ringtone alarm media communication accessibility unknown; do
+        settings put global "y700_haptic_${id}_enabled" 0
+    done
+    settings put global y700_haptic_schema 5
+    schema=5
+    echo "Disabled legacy custom overrides; ZUXOS stock compatibility is now the baseline"
+fi
 
 CLI=/data/adb/lspd/cli
 if [ -x "$CLI" ]; then

@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="dev.lorana.y700.haptics"
-    android:versionCode="21"
-    android:versionName="2.11">
+    android:versionCode="40"
+    android:versionName="3.0">
     <uses-sdk android:minSdkVersion="28" android:targetSdkVersion="29" />
     <uses-permission android:name="android.permission.WRITE_SECURE_SETTINGS" />
     <uses-permission android:name="android.permission.VIBRATE" />
     <application android:allowBackup="false" android:hasCode="true" android:icon="@drawable/ic_launcher" android:roundIcon="@drawable/ic_launcher" android:label="Y700 触感控制">
         <meta-data android:name="xposedmodule" android:value="true" />
-        <meta-data android:name="xposeddescription" android:value="按场景调整 Y700 ColorOS 的振动模式、时长、强度与多段触感" />
+        <meta-data android:name="xposeddescription" android:value="将 ColorOS 触感翻译为 Y700/ZUXOS 原厂效果，并支持按场景自定义" />
         <meta-data android:name="xposedminversion" android:value="93" />
         <activity android:name=".SettingsActivity" android:exported="true">
             <intent-filter>

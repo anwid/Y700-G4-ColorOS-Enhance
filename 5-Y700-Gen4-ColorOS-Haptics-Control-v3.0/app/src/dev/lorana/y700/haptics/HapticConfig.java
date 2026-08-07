@@ -14,7 +14,10 @@ public final class HapticConfig {
         "\u901a\u77e5", "\u6765\u7535", "\u95f9\u949f", "\u5a92\u4f53\u89e6\u611f",
         "\u901a\u4fe1\u8bf7\u6c42", "\u65e0\u969c\u788d\u53cd\u9988", "\u672a\u5206\u7c7b\u632f\u52a8"
     };
-    public static final int[] DEFAULT_ENABLED = {1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0};
+    // A fresh install always starts in the compatibility layer's ZUXOS-stock
+    // path. "enabled" only means that the user wants to override that stock
+    // mapping with the selected custom mode; it never disables compatibility.
+    public static final int[] DEFAULT_ENABLED = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
     public static final int[] DEFAULT_DURATION = {25, 10, 15, 15, 15, 15, 10, 80, 250, 500, 50, 80, 20, 50};
     public static final int[] DEFAULT_AMPLITUDE = {255, 255, 255, 255, 255, 255, 160, 255, 255, 255, 255, 255, 180, 255};
     public static final int[] DEFAULT_MODE = {30, 18, 20, 11, 15, 12, 11, 0, 0, 0, 2, 0, 0, 0};
@@ -30,13 +33,14 @@ public final class HapticConfig {
         "\u5408\u6210\u539f\u8bed\uff1aQUICK_RISE", "\u5408\u6210\u539f\u8bed\uff1aSLOW_RISE",
         "\u5408\u6210\u539f\u8bed\uff1aQUICK_FALL", "\u5408\u6210\u539f\u8bed\uff1aTICK",
         "\u5408\u6210\u539f\u8bed\uff1aLOW_TICK", "\u81ea\u5b9a\u4e49\u591a\u6bb5\u539f\u8bed\u5e8f\u5217",
-        "\u7cfb\u7edf\u81ea\u5e26\uff1aCLICK", "\u7cfb\u7edf\u81ea\u5e26\uff1aDOUBLE_CLICK",
-        "\u7cfb\u7edf\u81ea\u5e26\uff1aTICK", "\u7cfb\u7edf\u81ea\u5e26\uff1aHEAVY_CLICK", "\u7cfb\u7edf\u81ea\u5e26\uff1aPOP",
+        "ZUXOS \u539f\u5382 HAL\uff1aCLICK", "ZUXOS \u539f\u5382 HAL\uff1aDOUBLE_CLICK",
+        "ZUXOS \u539f\u5382 HAL\uff1aTICK", "ZUXOS \u539f\u5382 HAL\uff1aHEAVY_CLICK", "ZUXOS \u539f\u5382 HAL\uff1aPOP",
         "Y700 \u539f\u5382\uff1a\u89e3\u9501\u4e3b\u9a6c\u8fbe", "Y700 \u539f\u5382\uff1a\u5f00\u5173\u53cc\u9a6c\u8fbe",
         "Y700 \u539f\u5382\uff1a\u6ed1\u6761\u523b\u5ea6", "Y700 \u539f\u5382\uff1a\u5bc6\u7801\u6309\u952e", "Y700 \u539f\u5382\uff1a\u5217\u8868\u523b\u5ea6",
         "Y700 \u8c03\u6821\uff1a\u6e05\u8106\u300c\u5494\u300d", "Y700 \u8c03\u6821\uff1a\u300c\u5494\u54d2\u300d\u53cc\u6bb5",
         "Y700 \u8c03\u6821\uff1a\u575a\u5b9e\u786e\u8ba4", "Y700 \u8c03\u6821\uff1a\u5de6\u53f3\u63a5\u529b",
-        "Y700 \u8c03\u6821\uff1a\u8f7b\u523b\u5ea6", "Y700 \u8c03\u6821\uff1a\u53cc\u4fa7\u56de\u5f39", "Y700 \u8c03\u6821\uff1a\u4e3b\u6b21\u547c\u5e94"
+        "Y700 \u8c03\u6821\uff1a\u8f7b\u523b\u5ea6", "Y700 \u8c03\u6821\uff1a\u53cc\u4fa7\u56de\u5f39", "Y700 \u8c03\u6821\uff1a\u4e3b\u6b21\u547c\u5e94",
+        "ZUXOS \u539f\u5382 HAL\uff1aTHUD"
     };
     public static final String[] MODE_DESCRIPTIONS = {
         "\u4ec5\u628a\u8fc7\u957f\u632f\u52a8\u622a\u6210\u8bbe\u5b9a\u4e0a\u9650\uff0c\u77ed\u632f\u52a8\u4fdd\u7559\u539f\u8282\u594f\u3002",
@@ -58,11 +62,11 @@ public final class HapticConfig {
         "\u539f\u8bed TICK\uff1a\u8f7b\u5feb\u3001\u5c16\u9510\u7684\u523b\u5ea6\u611f\u3002",
         "\u539f\u8bed LOW_TICK\uff1a\u9891\u611f\u66f4\u4f4e\u3001\u66f4\u67d4\u548c\u7684\u523b\u5ea6\u611f\u3002",
         "\u6309\u987a\u5e8f\u7f16\u6392\u591a\u4e2a\u539f\u8bed\uff0c\u6bcf\u6bb5\u53ef\u8bbe\u5f3a\u5ea6\u548c\u524d\u7f6e\u5ef6\u8fdf\u3002",
-        "\u8c03\u7528 Android \u6807\u51c6 CLICK\uff1b\u7531 ColorOS HAL \u6620\u5c04\uff0c\u4f5c\u4e3a\u7cfb\u7edf\u81ea\u5e26\u884c\u4e3a\u4fdd\u7559\u3002",
-        "\u8c03\u7528 Android \u6807\u51c6 DOUBLE_CLICK\uff1b\u672c ROM \u4e0a\u53ef\u80fd\u4e0e CLICK \u5dee\u5f02\u5f88\u5c0f\u3002",
-        "\u8c03\u7528 Android \u6807\u51c6 TICK\uff0c\u9002\u5408\u517c\u5bb9\u4f9d\u8d56\u6807\u51c6 API \u7684\u573a\u666f\u3002",
-        "\u8c03\u7528 Android \u6807\u51c6 HEAVY_CLICK\uff1b\u5f3a\u5ea6\u4ecd\u53d7 ColorOS HAL \u9650\u5236\u3002",
-        "\u8c03\u7528 Android \u6807\u51c6 POP\uff1b\u4f5c\u4e3a\u7cfb\u7edf\u81ea\u5e26\u6548\u679c\u4fdd\u7559\u3002",
+        "\u8c03\u7528 ZUXOS \u539f\u5382 Hapticsconfig.xml \u4e2d\u7684 CLICK \u9884\u5236\u6548\u679c\uff1b\u4fdd\u7559\u539f\u5382\u5236\u52a8\u4e0e\u5f3a\u5ea6\u6863\u4f4d\u3002",
+        "\u8c03\u7528 ZUXOS \u539f\u5382 DOUBLE_CLICK \u9884\u5236\u6548\u679c\uff1b\u5b9e\u9645\u5dee\u5f02\u7531\u8054\u60f3\u539f\u5382\u56fa\u4ef6\u51b3\u5b9a\u3002",
+        "\u8c03\u7528 ZUXOS \u539f\u5382 TICK \u9884\u5236\u6548\u679c\uff0c\u9002\u5408\u952e\u76d8\u3001\u5217\u8868\u548c\u7ec6\u5bc6\u523b\u5ea6\u3002",
+        "\u8c03\u7528 ZUXOS \u539f\u5382 HEAVY_CLICK \u9884\u5236\u6548\u679c\uff0c\u9002\u5408\u91cd\u8981\u786e\u8ba4\u6216\u957f\u6309\u3002",
+        "\u8c03\u7528 ZUXOS \u539f\u5382 POP \u9884\u5236\u6548\u679c\uff0c\u9002\u5408\u5f00\u5173\u548c\u5143\u7d20\u5f39\u51fa\u3002",
         "\u590d\u73b0 ZUXOS \u89e3\u9501\u6210\u529f\u7684\u4e3b\u9a6c\u8fbe\u77ed\u8109\u51b2\uff1aRAM 1\u300115 ms\uff1b\u539f\u5382\u5c31\u504f\u8f7b\u3002",
         "\u590d\u73b0 ZUI \u5f00\u5173\u63a7\u4ef6\uff1a\u53cc\u9a6c\u8fbe\u3001\u573a\u666f 31\u300115 ms\u3001\u539f\u5382\u6700\u5927\u589e\u76ca\u3002",
         "\u590d\u73b0 ZUI \u6ed1\u6761\u523b\u5ea6\uff1a\u53cc\u9a6c\u8fbe\u3001\u573a\u666f 31\u300111 ms\uff0c\u8282\u594f\u66f4\u7d27\u3002",
@@ -74,7 +78,8 @@ public final class HapticConfig {
         "\u5de6\u9a6c\u8fbe\u5148\u8d77\u3001\u53f3\u9a6c\u8fbe\u76f8\u9694 7 ms \u8ddf\u8fdb\uff0c\u5f3a\u8c03 Y700 \u7684\u6a2a\u5411\u53cc\u9a6c\u8fbe\u7279\u6027\u3002",
         "\u4f4e\u589e\u76ca RAM 1 \u7684 8 ms \u53cc\u4fa7\u70b9\u6309\uff0c\u7528\u4e8e\u5bc6\u96c6\u952e\u76d8\u6216\u6ed1\u52a8\u523b\u5ea6\u3002",
         "\u5f3a\u77ed RAM 2 \u540e\u63a5\u534a\u5f3a\u540c\u6ce2\u5f62\uff0c\u505a\u51fa\u5feb\u901f\u538b\u4e0b\u4e0e\u56de\u5f39\u611f\u3002",
-        "\u4e3b\u9a6c\u8fbe RAM 3 \u8d77\u624b\uff0c\u53f3\u9a6c\u8fbe RAM 1 \u77ed\u6536\u5c3e\uff0c\u6bd4\u540c\u6b65\u53cc\u632f\u66f4\u6709\u5c42\u6b21\u3002"
+        "\u4e3b\u9a6c\u8fbe RAM 3 \u8d77\u624b\uff0c\u53f3\u9a6c\u8fbe RAM 1 \u77ed\u6536\u5c3e\uff0c\u6bd4\u540c\u6b65\u53cc\u632f\u66f4\u6709\u5c42\u6b21\u3002",
+        "\u8c03\u7528 ZUXOS \u539f\u5382 Hapticsconfig.xml \u4e2d\u7684 THUD \u9884\u5236\u6548\u679c\uff0c\u4fdd\u7559\u539f\u5382\u5236\u52a8\u3001\u5f3a\u5ea6\u6863\u4f4d\u4e0e\u56de\u9000\u903b\u8f91\u3002"
     };
 
     public static final int MODE_CUSTOM_COMPOSITION = 18;
@@ -82,6 +87,7 @@ public final class HapticConfig {
     public static final int MODE_TACTILE_LAST = 23;
     public static final int MODE_DUAL_FIRST = 24;
     public static final int MODE_DUAL_LAST = 35;
+    public static final int MODE_STOCK_THUD = 36;
     public static final String DEFAULT_PRIMITIVE_IDS = "1,7";
     public static final String DEFAULT_PRIMITIVE_SCALES = "1.0,0.6";
     public static final String DEFAULT_PRIMITIVE_DELAYS = "0,40";
@@ -128,8 +134,20 @@ public final class HapticConfig {
         int[] order = new int[MODE_NAMES.length];
         order[0] = MODE_CUSTOM_COMPOSITION;
         int out = 1;
-        for (int mode = 0; mode < MODE_NAMES.length; mode++) if (mode != MODE_CUSTOM_COMPOSITION) order[out++] = mode;
+        // Keep the visual sequence editor first, then make every verified
+        // ZUXOS-stock HAL/dual-motor choice easy to find.
+        int[] stock = {19, 20, 21, MODE_STOCK_THUD, 22, 23, 24, 25, 26, 27, 28};
+        for (int mode : stock) order[out++] = mode;
+        for (int mode = 0; mode < MODE_NAMES.length; mode++) {
+            if (mode == MODE_CUSTOM_COMPOSITION || contains(stock, mode)) continue;
+            order[out++] = mode;
+        }
         return order;
+    }
+
+    private static boolean contains(int[] values, int target) {
+        for (int value : values) if (value == target) return true;
+        return false;
     }
 
     public static String[] displayModeNames() {
@@ -165,6 +183,64 @@ public final class HapticConfig {
 
     public static void putString(ContentResolver cr, String id, String suffix, String value) {
         Settings.Global.putString(cr, PREFIX + id + "_" + suffix, value);
+    }
+
+    /** Returns the original View haptic-feedback constant embedded by system_server. */
+    public static int feedbackConstant(String reason) {
+        if (reason == null) return -1;
+        final String marker = "performHapticFeedback(constant=";
+        int start = reason.indexOf(marker);
+        if (start < 0) return -1;
+        start += marker.length();
+        int end = reason.indexOf(')', start);
+        if (end <= start) return -1;
+        try { return Integer.parseInt(reason.substring(start, end)); }
+        catch (Throwable ignored) { return -1; }
+    }
+
+    /** ColorOS private feedback constants accepted by COUI but absent from AOSP/ZUXOS. */
+    public static boolean isOplusFeedbackConstant(int constant) {
+        return constant >= 300 && constant <= 308;
+    }
+
+    /**
+     * Maps COUI-only semantics to feedback constants implemented by the current
+     * ZUXOS/AOSP HapticFeedbackVibrationProvider. The provider then selects the
+     * stock predefined effect/composition and the stock vendor HAL calibration.
+     */
+    public static int stockFeedbackConstantForOplus(int constant) {
+        switch (constant) {
+            case 300: return 0;  // LONG_VIBRATE -> LONG_PRESS / HEAVY_CLICK
+            case 301: return 3;  // KEYBOARD_TOUCH_FEEDBACK -> KEYBOARD_TAP
+            case 302: return 27; // GRANULAR_SHORT_VIBRATE -> SEGMENT_FREQUENT_TICK
+            case 303: return 1;  // SHORT_VIBRATE -> VIRTUAL_KEY / CLICK
+            case 304: return 17; // SHORT_TRIPLE_VIBRATE -> REJECT / DOUBLE_CLICK
+            case 305: return 21; // STEPPING_SHORT_VIBRATE -> TOGGLE_ON composition
+            case 306: return 12; // EDGE_SHORT_VIBRATE -> GESTURE_START / CLICK
+            case 307: return 26; // EDGE_LIST_VIBRATE -> SEGMENT_TICK
+            case 308: return 27; // GRANULAR_SHORT_VIBRATE_SYNC -> SEGMENT_FREQUENT_TICK
+            default: return constant;
+        }
+    }
+
+    /** Closest ZUXOS stock predefined effect for each COUI-only semantic. */
+    public static int stockEffectIdForOplusFeedback(int constant) {
+        switch (constant) {
+            case 300: return 5; // LONG_VIBRATE -> HEAVY_CLICK
+            case 301: return 0; // KEYBOARD_TOUCH_FEEDBACK -> CLICK
+            case 302: return 2; // GRANULAR_SHORT_VIBRATE -> TICK
+            case 303: return 0; // SHORT_VIBRATE -> CLICK
+            case 304: return 1; // SHORT_TRIPLE_VIBRATE -> DOUBLE_CLICK (closest stock multi-pulse)
+            case 305: return 2; // STEPPING_SHORT_VIBRATE -> TICK
+            case 306: return 4; // EDGE_SHORT_VIBRATE -> POP
+            case 307: return 2; // EDGE_LIST_VIBRATE -> TICK
+            case 308: return 2; // GRANULAR_SHORT_VIBRATE_SYNC -> TICK
+            default: return -1;
+        }
+    }
+
+    public static boolean isStockHalMode(int mode) {
+        return (mode >= MODE_TACTILE_FIRST && mode <= MODE_TACTILE_LAST) || mode == MODE_STOCK_THUD;
     }
 
     public static int indexForRequest(Context context, int usage, String opPkg, String reason) {

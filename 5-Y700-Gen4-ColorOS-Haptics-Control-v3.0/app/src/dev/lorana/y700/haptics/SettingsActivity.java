@@ -66,8 +66,8 @@ public final class SettingsActivity extends Activity {
 
         TextView title = text("Y700 ColorOS \u89e6\u611f\u63a7\u5236", 26, 0xff202124);
         title.setPadding(0, dp(6), 0, 0); root.addView(title);
-        TextView subtitle = text("AOSP Haptics Controller", 13, BLUE); root.addView(subtitle);
-        TextView hint = text("\u6309 Android \u7528\u9014\u548c\u5b9e\u9645\u8c03\u7528\u573a\u666f\u5206\u4e3a 14 \u7c7b\u72ec\u7acb\u63a7\u5236\u3002\u5173\u95ed\u67d0\u9879\u8868\u793a\u5b8c\u5168\u6cbf\u7528 ROM\uff1b\u5f00\u542f\u540e\u53ef\u8bbe\u7f6e\u5904\u7406\u6a21\u5f0f\u3001\u65f6\u957f\u548c\u6700\u7ec8\u76ee\u6807\u5f3a\u5ea6\u3002", 14, 0xff555555);
+        TextView subtitle = text("ZUXOS Stock Haptics Bridge", 13, BLUE); root.addView(subtitle);
+        TextView hint = text("\u517c\u5bb9\u7ffb\u8bd1\u5c42\u59cb\u7ec8\u751f\u6548\uff1aColorOS/COUI \u79c1\u6709\u7684 300\u2013308 \u53f7\u89e6\u611f\u4f1a\u81ea\u52a8\u8f6c\u6210 Y700/ZUXOS \u539f\u5382\u6548\u679c\uff0c\u666e\u901a\u5e94\u7528\u65e0\u9700 Root\u3002\u6bcf\u7c7b\u7684\u5f00\u5173\u53ea\u8868\u793a\u201c\u4f7f\u7528\u6211\u7684\u81ea\u5b9a\u4e49\u201d\uff1b\u5173\u95ed\u65f6\u4ecd\u8d70 ZUXOS \u539f\u5382\u6620\u5c04\uff0c\u4e0d\u4f1a\u9000\u56de ColorOS \u7684\u9519\u8bef\u632f\u52a8\u3002", 14, 0xff555555);
         hint.setPadding(0, dp(8), 0, dp(12));
         root.addView(hint);
 
@@ -82,7 +82,7 @@ public final class SettingsActivity extends Activity {
         root.addView(stop, fullButtonParams());
 
         Button defaults = new Button(this);
-        defaults.setText("\u6062\u590d\u9ed8\u8ba4\u8bbe\u7f6e");
+        defaults.setText("\u6062\u590d ZUXOS \u539f\u5382\u9ed8\u8ba4\uff08\u5173\u95ed\u5168\u90e8\u81ea\u5b9a\u4e49\uff09");
         defaults.setOnClickListener(v -> {
             ContentResolver cr = getContentResolver();
             for (int i = 0; i < HapticConfig.IDS.length; i++) {
@@ -100,7 +100,7 @@ public final class SettingsActivity extends Activity {
         styleSecondary(defaults);
         root.addView(defaults, fullButtonParams());
 
-        TextView footer = text("\u8bbe\u7f6e\u5b9e\u65f6\u4fdd\u5b58\u3002Vector \u7684 system_server \u5185\u90e8\u4f5c\u7528\u57df\u4e3a system/0\uff1bLSPosed \u4e2d\u9009\u201c\u7cfb\u7edf\u6846\u67b6\u201d\u3002Y700 \u539f\u5382/\u8c03\u6821\u9884\u8bbe\u4f1a\u76f4\u63a5\u4f7f\u7528 ROM \u4fdd\u7559\u7684 IVibratorDual \u670d\u52a1\uff0c\u53ef\u5206\u522b\u9a71\u52a8\u5de6\u53f3 AW86937\uff1b\u4e0d\u4fee\u6539\u9a71\u52a8\u7535\u538b\u4e0e\u539f\u5382\u589e\u76ca\u4e0a\u9650\u3002", 13, 0xff777777);
+        TextView footer = text("\u8bbe\u7f6e\u5b9e\u65f6\u4fdd\u5b58\u3002Vector \u4f5c\u7528\u57df\u4e3a system/0\uff1bLSPosed \u53ea\u52fe\u9009\u201c\u7cfb\u7edf\u6846\u67b6\u201d\u3002\u6a21\u5757\u5185\u7f6e ZUXOS 1.5.10.259 \u539f\u5382 Hapticsconfig.xml\uff0c\u5e76\u5728 system_server \u7edf\u4e00\u7ffb\u8bd1\u6240\u6709\u666e\u901a\u5e94\u7528\u901a\u8fc7 Android \u632f\u52a8\u670d\u52a1\u53d1\u51fa\u7684\u8bf7\u6c42\u3002Y700 \u53cc\u9a6c\u8fbe\u9884\u8bbe\u76f4\u63a5\u4f7f\u7528 IVibratorDual \u670d\u52a1\uff0c\u4e0d\u8d85\u8fc7\u8054\u60f3\u539f\u5382\u589e\u76ca\u4e0a\u9650\u3002", 13, 0xff777777);
         footer.setPadding(0, dp(16), 0, 0);
         root.addView(footer);
         setContentView(scroll);
@@ -121,7 +121,7 @@ public final class SettingsActivity extends Activity {
                 HapticConfig.putString(cr, id, "primitive_delays", HapticConfig.defaultPrimitiveDelays(i));
                 HapticConfig.putString(cr, id, "segment_durations", HapticConfig.defaultSegmentDurations(i));
             }
-            Settings.Global.putInt(cr, HapticConfig.PREFIX + "schema", 3);
+            Settings.Global.putInt(cr, HapticConfig.PREFIX + "schema", 5);
             return;
         }
         if (schema < 2) {
@@ -134,6 +134,19 @@ public final class SettingsActivity extends Activity {
             copyCategory(cr, "gesture", "back", 0);
             copyCategory(cr, "gesture", "multitask", 1);
             Settings.Global.putInt(cr, HapticConfig.PREFIX + "schema", 3);
+            schema = 3;
+        }
+        if (schema < 4) {
+            // v3 changes enabled=0 from ColorOS passthrough to the stock ZUXOS
+            // compatibility path. Preserve all existing custom selections.
+            Settings.Global.putInt(cr, HapticConfig.PREFIX + "schema", 4);
+            schema = 4;
+        }
+        if (schema < 5) {
+            // v3's release baseline is the stock compatibility layer. Keep every
+            // saved editor value, but disable legacy overrides once on upgrade.
+            for (String id : HapticConfig.IDS) HapticConfig.put(cr, id, "enabled", 0);
+            Settings.Global.putInt(cr, HapticConfig.PREFIX + "schema", 5);
         }
     }
 
@@ -177,7 +190,7 @@ public final class SettingsActivity extends Activity {
         LinearLayout card = card(root);
 
         Switch enabled = new Switch(this);
-        enabled.setText(HapticConfig.NAMES[index] + "\uff1a\u542f\u7528\u81ea\u5b9a\u4e49");
+        enabled.setText(HapticConfig.NAMES[index] + "\uff1a\u4f7f\u7528\u81ea\u5b9a\u4e49\uff08\u5173\u95ed = ZUXOS \u539f\u5382\uff09");
         enabled.setTextSize(17);
         enabled.setChecked(HapticConfig.get(cr, id, "enabled", HapticConfig.DEFAULT_ENABLED[index]) != 0);
         card.addView(enabled);
@@ -252,7 +265,7 @@ public final class SettingsActivity extends Activity {
                 // system_server replaces this harmless marker with the mixed sequence.
                 effect = VibrationEffect.createOneShot(1, 1);
             }
-            else if (mode >= HapticConfig.MODE_TACTILE_FIRST && mode <= HapticConfig.MODE_TACTILE_LAST) {
+            else if (HapticConfig.isStockHalMode(mode)) {
                 effect = buildTactilePreset(mode, amplitude);
             }
             else effect = VibrationEffect.createOneShot(Math.max(1, duration), Math.max(1, amplitude));
@@ -267,6 +280,7 @@ public final class SettingsActivity extends Activity {
         else if (mode == 20) effectId = 1;
         else if (mode == 21) effectId = 2;
         else if (mode == 22) effectId = 5;
+        else if (mode == HapticConfig.MODE_STOCK_THUD) effectId = 3;
         else effectId = 4;
         return applyEffectStrength(VibrationEffect.createPredefined(effectId), amplitude);
     }
@@ -555,8 +569,8 @@ public final class SettingsActivity extends Activity {
         duration.setEnabled(durationUsed);
         if (durationUsed) durationLabel.setText("\u65f6\u957f/\u4e0a\u9650\uff1a" + duration.getProgress() + " ms");
         else if (mode == 2) durationLabel.setText("\u65f6\u957f\uff1a\u4fdd\u7559\u539f\u6ce2\u5f62\uff08\u6b64\u6a21\u5f0f\u4e0d\u4f7f\u7528\u6ed1\u6746\uff09");
-        else if (mode >= HapticConfig.MODE_DUAL_FIRST) durationLabel.setText("\u65f6\u957f/\u5de6\u53f3\u65f6\u5e8f\uff1a\u7531 Y700 \u53cc\u9a6c\u8fbe\u9884\u8bbe\u56fa\u5b9a\uff08\u6b64\u6a21\u5f0f\u4e0d\u4f7f\u7528\u6ed1\u6746\uff09");
-        else if (mode >= HapticConfig.MODE_TACTILE_FIRST) durationLabel.setText("\u65f6\u957f\uff1a\u7531 Android \u7cfb\u7edf\u81ea\u5e26\u6548\u679c\u56fa\u5b9a\uff08\u6b64\u6a21\u5f0f\u4e0d\u4f7f\u7528\u6ed1\u6746\uff09");
+        else if (mode >= HapticConfig.MODE_DUAL_FIRST && mode <= HapticConfig.MODE_DUAL_LAST) durationLabel.setText("\u65f6\u957f/\u5de6\u53f3\u65f6\u5e8f\uff1a\u7531 Y700 \u53cc\u9a6c\u8fbe\u9884\u8bbe\u56fa\u5b9a\uff08\u6b64\u6a21\u5f0f\u4e0d\u4f7f\u7528\u6ed1\u6746\uff09");
+        else if (HapticConfig.isStockHalMode(mode)) durationLabel.setText("\u65f6\u957f\uff1a\u7531 ZUXOS \u539f\u5382 HAL \u9884\u5236\u6548\u679c\u56fa\u5b9a\uff08\u6b64\u6a21\u5f0f\u4e0d\u4f7f\u7528\u6ed1\u6746\uff09");
         else durationLabel.setText("\u65f6\u957f\uff1a\u7531 HAL \u6548\u679c/\u539f\u8bed\u56fa\u5b9a\uff08\u6b64\u6a21\u5f0f\u4e0d\u4f7f\u7528\u6ed1\u6746\uff09");
 
         int amp = amplitude.getProgress();
@@ -566,11 +580,11 @@ public final class SettingsActivity extends Activity {
             amplitudeLabel.setText("\u6807\u51c6\u6548\u679c\u5f3a\u5ea6\uff1a" + tier + "\uff08\u4e09\u6863\uff1b1-84 / 85-169 / 170-255\uff09");
         } else if (mode == 9) {
             amplitudeLabel.setText("\u5f3a\u5ea6\uff1aNOOP \u4e0d\u9a71\u52a8\u9a6c\u8fbe\uff08\u4e0d\u4f7f\u7528\u6ed1\u6746\uff09");
-        } else if (mode >= HapticConfig.MODE_DUAL_FIRST) {
+        } else if (mode >= HapticConfig.MODE_DUAL_FIRST && mode <= HapticConfig.MODE_DUAL_LAST) {
             amplitudeLabel.setText("Y700 \u53cc\u9a6c\u8fbe\u603b\u5f3a\u5ea6\uff1a" + amp + " / 255\uff08\u6309\u6bd4\u4f8b\u7f29\u653e\u9884\u8bbe\uff1b\u4e0d\u8d85\u8fc7\u539f\u5382 0x80 \u589e\u76ca\uff09");
-        } else if (mode >= HapticConfig.MODE_TACTILE_FIRST) {
+        } else if (HapticConfig.isStockHalMode(mode)) {
             String tier = amp < 85 ? "LIGHT" : (amp < 170 ? "MEDIUM" : "STRONG");
-            amplitudeLabel.setText("\u7cfb\u7edf\u81ea\u5e26\u6548\u679c\u5f3a\u5ea6\uff1a" + tier + "\uff08\u4e09\u6863\uff09");
+            amplitudeLabel.setText("ZUXOS \u539f\u5382\u6548\u679c\u5f3a\u5ea6\uff1a" + tier + "\uff08\u4e09\u6863\uff09");
         } else if (mode >= 10) {
             amplitudeLabel.setText("\u539f\u8bed/\u7ec4\u5408\u603b\u5f3a\u5ea6\uff1a" + amp + " / 255");
         } else {

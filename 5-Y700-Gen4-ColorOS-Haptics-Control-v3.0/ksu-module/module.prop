@@ -1,0 +1,6 @@
+id=y700_coloros_haptics_control
+name=Y700 Gen 4 ColorOS Haptics Control
+version=3.0
+versionCode=40
+author=Codex for lorana
+description=Restores ZUXOS stock calibration, translates ColorOS/COUI feedback for all apps in system_server, and keeps per-scene visual customization.

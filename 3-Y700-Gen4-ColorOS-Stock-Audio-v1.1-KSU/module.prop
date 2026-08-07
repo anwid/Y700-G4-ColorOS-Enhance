@@ -1,0 +1,6 @@
+id=y700_coloros_stock_audio
+name=Y700 Gen 4 ColorOS Stock Audio Behavior
+version=1.1
+versionCode=11
+author=Codex for lorana
+description=Restores the Lenovo ZUXOS wired-headset curve and gain calibration, disables the unavailable AudioX effect, and fixes delayed volume application caused by the ColorOS AIDL device-category mismatch.

@@ -36,6 +36,33 @@ public final class HookEntry implements IXposedHookLoadPackage {
                 if (param.args != null && param.args.length > 0 && param.args[0] instanceof Context) context = (Context) param.args[0];
             }
         });
+        // Translate COUI-private feedback constants before system_server asks the
+        // AOSP/ZUXOS provider to resolve them. This is the primary compatibility
+        // bridge: it also covers callers whose request would otherwise be rejected
+        // as UNSUPPORTED before vibrateInternal (and therefore our custom layer).
+        XposedBridge.hookAllMethods(service, "performHapticFeedbackInternal", new XC_MethodHook() {
+            @Override protected void beforeHookedMethod(MethodHookParam param) {
+                if (param.args == null || param.args.length < 4 || !(param.args[3] instanceof Integer)) return;
+                int original = ((Integer) param.args[3]).intValue();
+                if (HapticConfig.isOplusFeedbackConstant(original)) {
+                    param.args[3] = Integer.valueOf(HapticConfig.stockFeedbackConstantForOplus(original));
+                }
+            }
+        });
+        // ColorOS/COUI uses private constants 300-308. AOSP/ZUXOS returns null
+        // for them before vibrateInternal is reached. Return the closest stock
+        // ZUXOS predefined effect at the provider boundary, keeping the normal
+        // Android queue, cancellation, priority and attribution path intact.
+        final Class<?> provider = XposedHelpers.findClass("com.android.server.vibrator.HapticFeedbackVibrationProvider", p.classLoader);
+        XposedBridge.hookAllMethods(provider, "getVibration", new XC_MethodHook() {
+            @Override protected void beforeHookedMethod(MethodHookParam param) {
+                if (param.args == null || param.args.length == 0 || !(param.args[0] instanceof Integer)) return;
+                int original = ((Integer) param.args[0]).intValue();
+                if (HapticConfig.isOplusFeedbackConstant(original)) {
+                    param.setResult(VibrationEffect.createPredefined(HapticConfig.stockEffectIdForOplusFeedback(original)));
+                }
+            }
+        });
         XposedBridge.hookAllMethods(service, "vibrateInternal", new XC_MethodHook() {
             @Override protected void beforeHookedMethod(MethodHookParam param) {
                 try {
@@ -64,7 +91,27 @@ public final class HookEntry implements IXposedHookLoadPackage {
                     }
                     int index = HapticConfig.indexForRequest(context, usage, opPkg, reason);
                     String id = HapticConfig.IDS[index];
-                    if (HapticConfig.get(context.getContentResolver(), id, "enabled", HapticConfig.DEFAULT_ENABLED[index]) == 0) return;
+                    boolean customEnabled = HapticConfig.get(context.getContentResolver(), id, "enabled", HapticConfig.DEFAULT_ENABLED[index]) != 0;
+                    if (!customEnabled) {
+                        // ColorOS gesture components sometimes bypass
+                        // performHapticFeedback completely and submit an anonymous
+                        // 65 ms step waveform. Passing that through preserves the
+                        // port's long, mushy feedback even though the custom switch
+                        // is off. Translate only those anonymous system touch paths;
+                        // normal app waveforms and notification/ringtone effects stay
+                        // untouched. The result still goes through Android's queue,
+                        // user intensity scaling and the stock ZUXOS vendor HAL.
+                        boolean systemTouch = reason == null && (index == 0 || index == 1 || index == 2)
+                                && ("com.android.systemui".equals(opPkg)
+                                || "com.android.launcher".equals(opPkg)
+                                || (opPkg != null && opPkg.indexOf(".launcher") >= 0));
+                        if (systemTouch) {
+                            int stockMode = index == 1 ? 20 : (index == 2 ? 21 : 19);
+                            param.args[3] = transformCombined(param.args[3], 15, 160, stockMode,
+                                    "", "", "", "");
+                        }
+                        return;
+                    }
                     int duration = HapticConfig.get(context.getContentResolver(), id, "duration", HapticConfig.DEFAULT_DURATION[index]);
                     int amplitude = HapticConfig.get(context.getContentResolver(), id, "amplitude", HapticConfig.DEFAULT_AMPLITUDE[index]);
                     int mode = HapticConfig.get(context.getContentResolver(), id, "mode", HapticConfig.DEFAULT_MODE[index]);
@@ -189,7 +236,7 @@ public final class HookEntry implements IXposedHookLoadPackage {
                 if (!added) return mark(VibrationEffect.createWaveform(new long[]{Math.max(1, pendingDelay)}, new int[]{0}, -1));
                 return mark((VibrationEffect) XposedHelpers.callMethod(composition, "compose"));
             }
-            if (mode >= HapticConfig.MODE_TACTILE_FIRST && mode <= HapticConfig.MODE_TACTILE_LAST) {
+            if (HapticConfig.isStockHalMode(mode)) {
                 return mark(buildTactilePreset(mode, amplitude));
             }
             long original = ((Long) XposedHelpers.callMethod(effect, "getDuration")).longValue();
@@ -263,6 +310,7 @@ public final class HookEntry implements IXposedHookLoadPackage {
         else if (mode == 20) effectId = 1;  // DOUBLE_CLICK
         else if (mode == 21) effectId = 2;  // TICK
         else if (mode == 22) effectId = 5;  // HEAVY_CLICK
+        else if (mode == HapticConfig.MODE_STOCK_THUD) effectId = 3; // THUD
         else effectId = 4;                  // POP
         VibrationEffect effect = VibrationEffect.createPredefined(effectId);
         int strength = amplitude < 85 ? 0 : (amplitude < 170 ? 1 : 2);

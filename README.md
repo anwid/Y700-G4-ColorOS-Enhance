@@ -34,7 +34,7 @@
 | 2   | Display Fix                                                               | 修复竖屏状态栏时间被错误刘海区域遮挡                | meta-overlayfs                  |
 | 3   | Stock Audio                                                               | 恢复原厂有线耳机音量曲线和增益校准                 | meta-overlayfs                  |
 | 4   | APK Parse Fix                                                             | 修复部分有效 APK 被 ColorOS 错误拒绝安装的问题    | Vector 或 LSPosed                |
-| 5   | Haptics Control                                                           | 分场景调整系统振动和双马达效果                   | Vector 或 LSPosed                |
+| 5   | Haptics Control                                                           | 恢复 ZUXOS 原厂标定并分场景调整系统振动          | meta-overlayfs + Vector/LSPosed  |
 | 6   | Pen Compatibility                                                         | 将联想 Tab Pen Plus 接入 ColorOS 手写笔功能 | Vector 或 LSPosed                |
 | 6.5 | Accessibility Warning Whitelist                                           | 跳过白名单应用触发的无障碍修改警告                 | Vector 或 LSPosed                |
 | 7   | Global Round Corners Off                                                  | 移除系统绘制的软件圆角遮罩                     | meta-overlayfs、Vector 或 LSPosed |
@@ -109,7 +109,7 @@
 
 在 KernelSU 中安装：
 
-`3-Y700-Gen4-ColorOS-Stock-Audio-v1.0-KSU.zip`
+`3-Y700-Gen4-ColorOS-Stock-Audio-v1.1-KSU.zip`
 
 安装完成后完整重启。
 
@@ -118,6 +118,7 @@
 - 恢复联想原厂有线耳机音乐音量曲线
 - 恢复有线耳机增益校准
 - 关闭当前无法初始化并持续重试的 OPlus AudioX
+- 修复 ColorOS AIDL 设备分类转换拒绝 `0xFF` 回退值、导致音量应用延迟的问题
 
 该模块不会修改：
 
@@ -179,9 +180,14 @@
 
 在 KernelSU 中安装：
 
-`5-Y700-Gen4-ColorOS-Haptics-Control-v2.11-KSU.zip`
+`5-Y700-Gen4-ColorOS-Haptics-Control-v3.0-KSU.zip`
 
 安装完成后完整重启。
+
+该版本同时依赖：
+
+- meta-overlayfs
+- Vector Framework 或 LSPosed（二选一）
 
 KSU 模块会自动安装桌面应用：
 
@@ -222,13 +228,14 @@ KSU 模块会自动安装桌面应用：
 - 通知
 - 未分类振动
 
-每个分类关闭时，会保留 ROM 原始行为；开启后才使用自定义设置。
+每个分类关闭时，会使用模块的 ZUXOS 原厂兼容路径；开启后才使用用户选择的自定义设置。关闭并不表示放行 ColorOS 的异常长波形。
 
 #### 支持的振动模式
 
 - 系统标准效果
 - 合成原语
 - 限制最长时间
+- ZUXOS 原厂 HAL 效果
 - Y700 双马达预设
 - 自定义多段序列
 
@@ -247,13 +254,20 @@ KSU 模块会自动安装桌面应用：
 
 该模块不会修改：
 
-- `Hapticsconfig.xml`
 - 内核
 - 马达电压
 - Boost 电压
 - 厂商增益上限
 
-最终振动强度仍受马达、固件和 ColorOS HAL 限制。
+该模块会通过 meta-overlayfs 覆盖 ZUXOS 1.5.10.259 原厂 `Hapticsconfig.xml`，并在安装时强制校验 SHA-256 与 `vendor_configs_file` SELinux 标签。标签错误时安装会直接中止，避免 ColorOS 音频 HAL 读取失败并卡在开机动画。
+
+system\_server Hook 会：
+
+- 将 ColorOS/COUI 私有触感常量 300–308 转换为 ZUXOS/AOSP 支持的原厂语义
+- 将 SystemUI/Launcher 绕过 View API 提交的匿名 65 ms 触摸波形按场景转换成 CLICK、DOUBLE\_CLICK 或 TICK
+- 保留通知、来电、闹钟和第三方应用主动提交的正常长波形
+
+最终振动强度仍受马达、固件和 HAL 上限限制。
 
 ---
 
@@ -626,7 +640,7 @@ Linux 或 macOS：
 
 ## 分类开关
 
-每个分类的开关关闭时，会保留 ROM 原始振动。
+每个分类的开关关闭时，会使用 ZUXOS 原厂标定和兼容映射。
 
 开启后，才会使用该分类中的自定义模式和参数。
 
@@ -639,7 +653,7 @@ Linux 或 macOS：
 
 ## 标准效果与合成原语
 
-标准效果和系统自带效果的波形由 ColorOS HAL 决定。
+标准效果和系统自带效果的波形由 ZUXOS 原厂配置与当前 HAL 实现共同决定。
 
 强度可能只存在 LIGHT、MEDIUM、STRONG 等少量档位，因此拖动相邻强度值时，实际效果可能没有明显区别。
 
@@ -668,19 +682,11 @@ Linux 或 macOS：
 
 ## 默认配置
 
-主页和多任务的默认配置为：
+v3 默认关闭全部 14 个自定义分类，直接使用 ZUXOS 原厂兼容路径。
 
-- QUICK\_RISE
-- 20 ms 脉冲
-- 60% 强度
-- 7 ms 前置延迟
+第一次安装会以全关闭状态初始化。从 v2.x 升级到 schema 5 时，也会一次性关闭旧版自定义启用位，但不会删除各分类已经保存的模式、强度、时长或多段编排。之后用户主动开启的分类不会在每次重启时被重置。
 
-默认值只会用于：
-
-- 第一次安装
-- 点击恢复默认设置
-
-升级模块不会覆盖已有配置。
+点击“恢复 ZUXOS 原厂默认”会再次关闭全部自定义分类。
 
 ---
 

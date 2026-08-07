@@ -1,6 +1,0 @@
-id=y700_coloros_haptics_control
-name=Y700 Gen 4 ColorOS Haptics Control
-version=2.11
-versionCode=31
-author=Codex for lorana
-description=Y700 ColorOS haptics controller with mixed visual sequences, adjustable pulse duration, stock ZUI dual-motor behavior and Android effects. Keeps stock voltage and gain limits.
