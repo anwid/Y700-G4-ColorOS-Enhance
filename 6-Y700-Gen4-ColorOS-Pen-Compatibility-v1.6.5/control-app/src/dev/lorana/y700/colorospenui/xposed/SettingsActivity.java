@@ -11,11 +11,9 @@ import android.provider.Settings;
 import android.view.Gravity;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
-import android.widget.SeekBar;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -47,7 +45,6 @@ public final class SettingsActivity extends Activity {
         super.onCreate(state);
         setTitle("Y700 手写笔控制");
         final SharedPreferences prefs = PenConfig.prefs(this);
-        PenConfig.migrateRestoreMs(this);
 
         ScrollView scroll = new ScrollView(this);
         scroll.setBackgroundColor(0xfff7f8fa);
@@ -57,7 +54,7 @@ public final class SettingsActivity extends Activity {
         scroll.addView(root, new ScrollView.LayoutParams(-1, -2));
         root.addView(text("Y700 ColorOS 手写笔控制", 25, 0xff202124));
         root.addView(text("Lenovo Tab Pen Plus compatibility bridge", 13, BLUE));
-        TextView intro = text("普通打字保留常用输入法；笔进入屏幕悬停范围时提前切到支持 Android 随处写的输入法，移开后自动恢复。", 14, 0xff555555);
+        TextView intro = text("普通打字保留常用输入法；笔靠近时切到手写输入法。Gboard 请求显示键盘时交给常用输入法。", 14, 0xff555555);
         intro.setPadding(0, dp(8), 0, dp(8)); root.addView(intro);
 
         LinearLayout testCard = card(root);
@@ -71,10 +68,11 @@ public final class SettingsActivity extends Activity {
 
         LinearLayout autoCard = card(root);
         android.widget.Switch enabled = new android.widget.Switch(this);
-        enabled.setText("手写时自动切换输入法"); enabled.setTextSize(17);
+        enabled.setText("笔靠近时切换输入法"); enabled.setTextSize(17);
         enabled.setChecked(PenConfig.auto(this)); autoCard.addView(enabled);
-        enabled.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override public void onCheckedChanged(CompoundButton b, boolean checked) { prefs.edit().putBoolean(PenConfig.AUTO, checked).apply(); }
+        enabled.setOnCheckedChangeListener((button, checked) -> {
+            prefs.edit().putBoolean(PenConfig.AUTO, checked).apply();
+            putGlobalInt(PenConfig.GLOBAL_AUTO, checked ? 1 : 0);
         });
 
         final List<InputMethodInfo> methods = ((InputMethodManager) getSystemService(INPUT_METHOD_SERVICE)).getEnabledInputMethodList();
@@ -86,24 +84,6 @@ public final class SettingsActivity extends Activity {
         }
         final Spinner normal = spinner(autoCard, "常用输入法", labels, indexOf(PenConfig.normalIme(this)));
         final Spinner handwriting = spinner(autoCard, "手写回退输入法", labels, indexOf(PenConfig.handwritingIme(this)));
-
-        final TextView delayLabel = text(restoreDelayLabel(PenConfig.restoreMs(this)), 14, 0xff333333);
-        final SeekBar delay = new SeekBar(this);
-        delay.setMax(145);
-        delay.setProgress(PenConfig.restoreMs(this) / 100 - 5);
-        autoCard.addView(delayLabel); autoCard.addView(delay, new LinearLayout.LayoutParams(-1, -2));
-        delay.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            public void onProgressChanged(SeekBar bar, int value, boolean fromUser) {
-                int ms = (value + 5) * 100;
-                if (fromUser && !PenConfig.setRestoreMs(SettingsActivity.this, ms)) {
-                    Toast.makeText(SettingsActivity.this, "无法保存恢复延时", Toast.LENGTH_SHORT).show();
-                    bar.setProgress(PenConfig.restoreMs(SettingsActivity.this) / 100 - 5);
-                    return;
-                }
-                delayLabel.setText(restoreDelayLabel(ms));
-            }
-            public void onStartTrackingTouch(SeekBar b) {} public void onStopTrackingTouch(SeekBar b) {}
-        });
 
         Button save = new Button(this); save.setText("保存输入法选择"); stylePrimary(save); autoCard.addView(save, buttonParams());
         save.setOnClickListener(v -> {
@@ -122,7 +102,7 @@ public final class SettingsActivity extends Activity {
         Button accessibility = new Button(this); accessibility.setText("打开无障碍设置（只需启用一次）"); styleSecondary(accessibility); autoCard.addView(accessibility, buttonParams());
         accessibility.setOnClickListener(v -> startActivity(new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)));
         boolean accessibilityGranted = isAccessibilityEnabled();
-        autoCard.addView(text("无障碍授权状态：" + (accessibilityGranted ? "已启用（配套模块会自动维持服务）" : "未启用（安装并启用配套 KSU 模块后会自动恢复）") + "。本服务不读取文字内容，只检查当前焦点是否为可编辑控件并监听手写笔事件。", 13, accessibilityGranted ? 0xff137333 : 0xffb3261e));
+        autoCard.addView(text("无障碍授权状态：" + (accessibilityGranted ? "已启用（配套模块会自动维持服务）" : "未启用（安装并启用配套 KSU 模块后会自动恢复）") + "。本服务只监听笔的接近状态。", 13, accessibilityGranted ? 0xff137333 : 0xffb3261e));
 
         LinearLayout systemCard = card(root);
         systemCard.addView(text("ColorOS 系统笔功能", 18, 0xff202124));
@@ -150,10 +130,6 @@ public final class SettingsActivity extends Activity {
         statusCard.addView(text("压感：NVT 驱动已报告 0–4095，Android 已归一化为 0–1；不在这里伪造压力曲线。\n低延迟：需要 Lenovo touchscreen HAL 在下次重启后启动并执行 Pen Mode；高报点率保持只读，以免覆盖你的触摸采样率超频。\nColorOS 笔记画笔：当前是 libSuniaEngine.so 的 EGL 原生崩溃，和输入法回退无关。", 14, 0xff555555));
 
         setContentView(scroll);
-    }
-
-    private String restoreDelayLabel(int ms) {
-        return String.format(java.util.Locale.ROOT, "笔离开感应范围后恢复：%.1f 秒", ms / 1000.0);
     }
 
     private boolean supportsStylus(InputMethodInfo info) {

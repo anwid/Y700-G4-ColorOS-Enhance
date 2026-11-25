@@ -28,7 +28,6 @@ find_pen_device() {
 }
 
 settings put global y700_pen_near 0
-GENERATION=0
 while true; do
     DEVICE=$(find_pen_device)
     if [ -z "$DEVICE" ] || [ ! -e "$DEVICE" ]; then
@@ -40,15 +39,10 @@ while true; do
     getevent -l "$DEVICE" 2>/dev/null | while IFS= read -r LINE; do
         case "$LINE" in
             *BTN_DIGI*DOWN*)
-                GENERATION=$((GENERATION + 1))
-                printf '%s\n' "$GENERATION" > "$MODDIR/pen_far_generation"
                 settings put global y700_pen_near 1
                 ;;
             *BTN_DIGI*UP*)
-                GENERATION=$((GENERATION + 1))
-                printf '%s\n' "$GENERATION" > "$MODDIR/pen_far_generation"
                 settings put global y700_pen_near 0
-                nohup "$MODDIR/ime_restore_once.sh" "$GENERATION" >/dev/null 2>&1 &
                 ;;
         esac
     done

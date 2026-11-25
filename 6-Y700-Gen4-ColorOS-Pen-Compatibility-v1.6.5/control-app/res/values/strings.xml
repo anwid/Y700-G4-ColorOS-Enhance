@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="accessibility_description">仅在手写笔位于输入框时临时切换到支持随处写的输入法，停止书写后恢复常用输入法。</string>
+    <string name="accessibility_description">监听触控笔接近状态，以切换到手写输入法。</string>
 </resources>

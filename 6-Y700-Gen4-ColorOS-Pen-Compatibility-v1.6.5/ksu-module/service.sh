@@ -65,7 +65,7 @@ fi
     done
     if [ -n "$CLI" ]; then
         "$CLI" modules enable "$PEN_PKG" >/dev/null 2>&1
-        "$CLI" scope set "$PEN_PKG" system/0 com.oplus.ipemanager/0 com.oplus.healthservice/0 >/dev/null 2>&1
+        "$CLI" scope set "$PEN_PKG" system/0 com.oplus.ipemanager/0 com.oplus.healthservice/0 com.google.android.inputmethod.latin/0 >/dev/null 2>&1
         if pm path "$FRAUD_PKG" >/dev/null 2>&1; then
             "$CLI" modules enable "$FRAUD_PKG" >/dev/null 2>&1
             "$CLI" scope set "$FRAUD_PKG" system/0 >/dev/null 2>&1

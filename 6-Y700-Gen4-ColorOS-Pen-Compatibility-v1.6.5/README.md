@@ -8,7 +8,7 @@
 
 - `ksu-module/`：KernelSU 模块源码和打包根目录。
 - `control-app/`：控制应用及 Xposed Hook 的 Java 源码、资源和最小编译桩。
-- `ksu-module/Y700PenControl.apk`：发布包内实际使用的预编译控制应用，便于核对和重新打包。
+- `ksu-module/system/app/dev.lorana.y700.colorospenui.xposed.apk`：发布包内实际使用的预编译控制应用，便于核对和重新打包。
 
 历史构建目录、旧 APK 备份、JADX 输出、ROM 提取物、签名密钥和 Android SDK 工具均未收录。
 
@@ -26,7 +26,7 @@
 
 ## 功能边界
 
-- 使用内核已有的 `/proc/support_pen`，不包含 system/vendor 覆盖、触控 HAL 或 `.so` 注入。
+- 使用内核已有的 `/proc/support_pen`，通过 `system/app` 挂载控制应用，不覆盖触控 HAL 或注入 `.so`。
 - 接入 ColorOS 手写笔设置、随处写、悬停指针、按钮路由和输入法自动回退。
 - 游戏模式内关闭笔，退出后恢复；控制应用不提供“游戏模式使用笔”实验开关。
 - 启动时清除旧测试版遗留的 `y700_pen_in_game` 值。
@@ -40,23 +40,26 @@
 3. 使用 D8，最低 API 设为 28；最终 APK 的 target SDK 为 29。
 4. 不要把 `de.robv.android.xposed.*` 编译桩打入 APK。
 5. 使用自己的密钥签名，并用 `apksigner verify --verbose` 验证。
-6. 将生成的 APK 替换为 `ksu-module/Y700PenControl.apk`，再打包 KSU 模块。
+6. 将生成的 APK 替换为 `ksu-module/system/app/dev.lorana.y700.colorospenui.xposed.apk`，再打包 KSU 模块。
 
 本地发布版使用 Android APK Signature Scheme v3。重新签名后 SHA-256 必然变化，升级安装还要求证书与已安装版本一致。
 
 ## 打包 KernelSU 模块
 
-ZIP 根目录必须直接包含 `module.prop`、`customize.sh`、`service.sh`、其余脚本和 `Y700PenControl.apk`，不得额外套目录，也不要包含 `.bak`、build 目录或调试日志。
+ZIP 根目录包含模块脚本和 `system/app/dev.lorana.y700.colorospenui.xposed.apk`。KernelSU 需要启用支持系统挂载的元模块（如 Mountify），重启后由 Android 从 `/system/app` 扫描控制应用。安装时还会用同一 APK 安装普通应用副本，使应用在模块卸载后仍可保留。模块卸载脚本不卸载控制应用。
 
 安装脚本会把控制应用的 Vector 作用域配置为：
 
 - `system/0`
 - `com.oplus.ipemanager/0`
 - `com.oplus.healthservice/0`
+- `com.google.android.inputmethod.latin/0`（Gboard 键盘交接）
 
-### 手写输入法恢复延时
+### 手写与常用输入法
 
-恢复滑块同时控制无障碍服务与 KernelSU 兜底。笔离开悬停感应范围后开始计时，期间重新靠近会取消本次恢复。升级后首次打开控制应用会迁移旧滑块设置。启动时会迁移旧常用输入法配置，并清除 ROM 用于固定 800 毫秒恢复的旧键。
+笔靠近时切到配置的手写输入法。Gboard 请求显示虚拟键盘时，改为切到已启用的常用输入法。笔触发的显示请求保留，以便启动随处写。
+笔离开不切换输入法。启动时会迁移旧常用输入法配置，并清除 ROM 用于固定 800 毫秒恢复的旧键。
+切换日志可使用 `adb logcat -s Y700Gboard Y700PenAccess` 查看。
 
 ### 轮盘例外应用与享做直发
 
