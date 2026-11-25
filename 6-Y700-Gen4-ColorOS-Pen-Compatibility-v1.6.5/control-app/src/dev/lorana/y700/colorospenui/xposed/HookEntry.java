@@ -1,6 +1,9 @@
 package dev.lorana.y700.colorospenui.xposed;
 
+import android.app.ActivityManager;
 import android.app.Application;
+import android.content.ComponentName;
+import android.content.Intent;
 import android.database.ContentObserver;
 import android.content.Context;
 import android.content.res.Resources;
@@ -14,9 +17,14 @@ import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import de.robv.android.xposed.callbacks.XC_LoadPackage;
 import java.lang.reflect.Method;
+import java.util.List;
 import java.util.Set;
 
 public final class HookEntry implements IXposedHookLoadPackage {
+    private static final String PENCIL_SINGLE_CLICK = "com.oplus.ipemanager.action.PENCIL_SINGLE_CLICK";
+    private static final String PENCIL_DOUBLE_CLICK = "com.oplus.ipemanager.action.PENCIL_DOUBLE_CLICK";
+    private static final String TOUCHNOTES_PACKAGE = "com.newskyer.draw";
+    private static final int ROULETTE_ACTION = 4;
     private static volatile Context systemContext;
     private static volatile boolean cursorLogged;
     private static volatile boolean gamePenHookArmed;
@@ -24,6 +32,10 @@ public final class HookEntry implements IXposedHookLoadPackage {
     @Override public void handleLoadPackage(XC_LoadPackage.LoadPackageParam p) {
         if ("android".equals(p.packageName)) {
             hookSystemStylusCursor(p.classLoader);
+            return;
+        }
+        if ("com.oplus.healthservice".equals(p.packageName)) {
+            hookRouletteReceiver(p.classLoader);
             return;
         }
         if (!"com.oplus.ipemanager".equals(p.packageName)) return;
@@ -37,6 +49,38 @@ public final class HookEntry implements IXposedHookLoadPackage {
             }};
             hook.invoke(null, "android.app.Instrumentation", null, "newApplication", args);
         } catch (Throwable t) { XposedBridge.log(t); }
+    }
+
+    private static void hookRouletteReceiver(ClassLoader loader) {
+        try {
+            Class<?> receiver = XposedHelpers.findClass(
+                    "com.oplus.globalcollect.collect.receiver.StylusPressReceiver", loader);
+            XposedBridge.hookAllMethods(receiver, "onReceive", new XC_MethodHook() {
+                @Override protected void beforeHookedMethod(MethodHookParam param) {
+                    if (param.args.length != 2 || !(param.args[0] instanceof Context)
+                            || !(param.args[1] instanceof Intent)) return;
+                    Intent intent = (Intent) param.args[1];
+                    String action = intent.getAction();
+                    boolean singleRoulette = PENCIL_SINGLE_CLICK.equals(action)
+                            && intent.getIntExtra("action", -1) == ROULETTE_ACTION;
+                    if (!singleRoulette && !PENCIL_DOUBLE_CLICK.equals(action)) return;
+                    try {
+                        ActivityManager manager = ((Context) param.args[0]).getSystemService(ActivityManager.class);
+                        if (manager == null) return;
+                        List<ActivityManager.RunningTaskInfo> tasks = manager.getRunningTasks(1);
+                        if (tasks == null || tasks.isEmpty()) return;
+                        ComponentName topActivity = tasks.get(0).topActivity;
+                        if (topActivity == null || !TOUCHNOTES_PACKAGE.equals(topActivity.getPackageName())) return;
+                        param.setResult(null);
+                        Log.i("Y700PenUI", "Skipped ColorOS pen roulette for " + topActivity.flattenToShortString());
+                    } catch (RuntimeException error) {
+                        Log.w("Y700PenUI", "Could not read the top task for pen routing", error);
+                    }
+                }
+            });
+        } catch (Throwable error) {
+            XposedBridge.log(error);
+        }
     }
 
     private static void hookSystemStylusCursor(ClassLoader loader) {

@@ -15,8 +15,15 @@ if [ -r "$PIDFILE" ]; then
 fi
 echo $$ > "$PIDFILE"
 
+touchnotes_has_focus() {
+    FOCUS=$(dumpsys window displays 2>/dev/null | grep 'mCurrentFocus=')
+    case "$FOCUS" in
+        *" com.newskyer.draw/com.newskyer.draw.PadActivity}"*|*" com.newskyer.draw/.PadActivity}"*) return 0 ;;
+    esac
+    return 1
+}
+
 send_single_click() {
-    settings put global y700_pen_last_button_event "single:$(date +%s)" 2>/dev/null
     ROUTE=$(settings get global y700_pen_single_button_route 2>/dev/null)
     [ "$ROUTE" = "null" ] || [ -z "$ROUTE" ] && ROUTE=1
     if [ "$ROUTE" = "0" ]; then
@@ -24,6 +31,12 @@ send_single_click() {
         return
     fi
     if [ "$ROUTE" = "1" ]; then
+        if touchnotes_has_focus && cmd activity broadcast --user current \
+            -a com.oplus.ipemanager.action.PENCIL_DOUBLE_CLICK \
+            -p com.newskyer.draw >/dev/null 2>&1; then
+            log -t "$TAG" "forwarded Lenovo single click as TouchNotes pen double click"
+            return
+        fi
         input stylus keyevent 308 >/dev/null 2>&1
         log -t "$TAG" "forwarded Lenovo single click as Android stylus primary key"
         return
@@ -46,6 +59,11 @@ send_single_click() {
 
 send_double_click() {
     settings put global y700_pen_last_button_event "double:$(date +%s)" 2>/dev/null
+    if touchnotes_has_focus; then
+        # The ROM already sends the physical double click to the note receiver.
+        log -t "$TAG" "skipped duplicate Lenovo double click in TouchNotes"
+        return
+    fi
     MODE=$(settings get global ipe_pencil_double_click 2>/dev/null)
     [ "$MODE" = "null" ] || [ -z "$MODE" ] && MODE=1
     if [ "$MODE" = "4" ]; then
@@ -89,7 +107,10 @@ while true; do
         # line and match the HID usage suffix instead of one exact rendering.
         NORMALIZED=$(printf '%s\n' "$LINE" | tr '[:upper:]' '[:lower:]')
         case "$NORMALIZED" in
-            *msc_scan*c0600*) send_single_click ;;
+            *msc_scan*c0600*)
+                send_single_click
+                settings put global y700_pen_last_button_event "single:$(date +%s)" 2>/dev/null
+                ;;
             *msc_scan*c0601*) send_double_click ;;
         esac
     done

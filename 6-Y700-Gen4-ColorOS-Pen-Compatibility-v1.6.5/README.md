@@ -52,6 +52,14 @@ ZIP 根目录必须直接包含 `module.prop`、`customize.sh`、`service.sh`、
 
 - `system/0`
 - `com.oplus.ipemanager/0`
+- `com.oplus.healthservice/0`
+
+### 享做笔记单击分流
+
+当享做笔记（`com.newskyer.draw`）是顶层任务时，Hook 跳过 ColorOS 的单击轮盘动作（`action=4`）和双击广播在轮盘接收端的处理。写字页内的物理双击由 ROM 送达享做，桥接不重复发送。
+其他应用继续走 ColorOS 原有的单击逻辑。无法取得顶层任务时也沿用原逻辑。
+命中规则可通过 `adb logcat -s Y700PenUI` 查看。
+桥接选择 Android 触控笔按键路由时，若焦点在享做写字页，物理单击会定向发送享做已支持的 ColorOS 笔杆双击广播，执行享做设置的双击动作。
 
 独立白名单模块 6.5 的作用域必须包含 `system/0`。如果使用 LSPosed 而非 Vector，需要手动选择对应作用域。
 
