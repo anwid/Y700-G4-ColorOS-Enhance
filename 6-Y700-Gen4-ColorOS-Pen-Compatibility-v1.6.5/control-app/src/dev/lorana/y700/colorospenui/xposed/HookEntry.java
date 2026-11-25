@@ -23,8 +23,8 @@ import java.util.Set;
 public final class HookEntry implements IXposedHookLoadPackage {
     private static final String PENCIL_SINGLE_CLICK = "com.oplus.ipemanager.action.PENCIL_SINGLE_CLICK";
     private static final String PENCIL_DOUBLE_CLICK = "com.oplus.ipemanager.action.PENCIL_DOUBLE_CLICK";
-    private static final String TOUCHNOTES_PACKAGE = "com.newskyer.draw";
     private static final int ROULETTE_ACTION = 4;
+    private static final String TOUCHNOTES_PAD = "com.newskyer.draw.PadActivity";
     private static volatile Context systemContext;
     private static volatile boolean cursorLogged;
     private static volatile boolean gamePenHookArmed;
@@ -65,16 +65,24 @@ public final class HookEntry implements IXposedHookLoadPackage {
                             && intent.getIntExtra("action", -1) == ROULETTE_ACTION;
                     if (!singleRoulette && !PENCIL_DOUBLE_CLICK.equals(action)) return;
                     try {
-                        ActivityManager manager = ((Context) param.args[0]).getSystemService(ActivityManager.class);
+                        Context context = (Context) param.args[0];
+                        ActivityManager manager = context.getSystemService(ActivityManager.class);
                         if (manager == null) return;
                         List<ActivityManager.RunningTaskInfo> tasks = manager.getRunningTasks(1);
                         if (tasks == null || tasks.isEmpty()) return;
                         ComponentName topActivity = tasks.get(0).topActivity;
-                        if (topActivity == null || !TOUCHNOTES_PACKAGE.equals(topActivity.getPackageName())) return;
+                        if (topActivity == null) return;
+                        String packageName = topActivity.getPackageName();
+                        if (!RouletteConfig.read(context).contains(packageName)) return;
                         param.setResult(null);
+                        if (singleRoulette && RouletteConfig.TOUCHNOTES_PACKAGE.equals(packageName)
+                                && TOUCHNOTES_PAD.equals(topActivity.getClassName())) {
+                            context.sendBroadcast(new Intent(PENCIL_DOUBLE_CLICK).setPackage(packageName));
+                            Log.i("Y700PenUI", "Forwarded single click directly to TouchNotes");
+                        }
                         Log.i("Y700PenUI", "Skipped ColorOS pen roulette for " + topActivity.flattenToShortString());
                     } catch (RuntimeException error) {
-                        Log.w("Y700PenUI", "Could not read the top task for pen routing", error);
+                        Log.w("Y700PenUI", "Could not route the pen button event", error);
                     }
                 }
             });

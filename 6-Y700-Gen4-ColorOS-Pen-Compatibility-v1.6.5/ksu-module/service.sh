@@ -21,9 +21,6 @@ fi
 
 # Start input bridges immediately.  Each bridge validates both its saved PID
 # and process command line, so unrelated PID reuse cannot suppress startup.
-if [ -x "$MODDIR/pen_button_bridge.sh" ]; then
-    nohup "$MODDIR/pen_button_bridge.sh" >/dev/null 2>&1 &
-fi
 if [ -x "$MODDIR/pen_proximity_bridge.sh" ]; then
     nohup "$MODDIR/pen_proximity_bridge.sh" >/dev/null 2>&1 &
 fi
@@ -41,12 +38,23 @@ fi
         pm grant "$FRAUD_PKG" android.permission.WRITE_SECURE_SETTINGS >/dev/null 2>&1
     fi
 
-    [ "$(settings get global y700_pen_normal_ime 2>/dev/null)" != 'null' ] || \
-        settings put global y700_pen_normal_ime 'com.baidu.input/.ImeService'
+    # The ROM HAL uses the legacy key for its own fixed-delay IME restore.
+    # Migrate the selected IME before clearing that key so only this module restores it.
+    NORMAL=$(settings get global y700_pen_module_normal_ime 2>/dev/null)
+    case "$NORMAL" in
+        ''|null)
+            NORMAL=$(settings get global y700_pen_normal_ime 2>/dev/null)
+            case "$NORMAL" in
+                ''|null) NORMAL='com.baidu.input/.ImeService' ;;
+            esac
+            settings put global y700_pen_module_normal_ime "$NORMAL"
+            ;;
+    esac
+    if [ "$(settings get global y700_pen_module_normal_ime 2>/dev/null)" = "$NORMAL" ]; then
+        settings delete global y700_pen_normal_ime
+    fi
     [ "$(settings get global y700_pen_handwriting_ime 2>/dev/null)" != 'null' ] || \
         settings put global y700_pen_handwriting_ime 'com.sohu.inputmethod.sogouoem/.SogouIME'
-    [ "$(settings get global y700_pen_single_button_route 2>/dev/null)" != 'null' ] || \
-        settings put global y700_pen_single_button_route 1
     # Public builds do not expose the unreliable "pen inside ColorOS game
     # mode" experiment.  Clear stale values left by earlier test builds.
     settings put global y700_pen_in_game 0

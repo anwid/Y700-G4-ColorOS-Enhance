@@ -19,11 +19,14 @@ public final class PenAccessibilityService extends AccessibilityService {
     private boolean penNear;
     private ContentObserver penObserver;
     private final Runnable restore = new Runnable() {
-        @Override public void run() { restoreNormalIme(); }
+        @Override public void run() {
+            if (getGlobalInt("y700_pen_near", 0) == 0) restoreNormalIme();
+        }
     };
 
     @Override protected void onServiceConnected() {
         super.onServiceConnected();
+        PenConfig.migrateRestoreMs(this);
         editableFocused = findEditableFocus();
         penNear = getGlobalInt("y700_pen_near", 0) != 0;
         penObserver = new ContentObserver(handler) {
@@ -38,7 +41,7 @@ public final class PenAccessibilityService extends AccessibilityService {
             Log.i(TAG, "watching KSU pen proximity state; near=" + penNear);
         } catch (Throwable error) { Log.e(TAG, "cannot watch KSU pen proximity state", error); }
         if (penNear && PenConfig.auto(this)) switchToHandwritingIme();
-        else if (!penNear) restoreNormalIme();
+        else if (!penNear) scheduleRestore();
     }
 
     private int getGlobalInt(String key, int def) {
@@ -52,8 +55,12 @@ public final class PenAccessibilityService extends AccessibilityService {
     private void updatePenNear() {
         penNear = getGlobalInt("y700_pen_near", 0) != 0;
         Log.d(TAG, "KSU pen proximity near=" + penNear + " editable=" + editableFocused);
-        if (penNear && PenConfig.auto(this)) switchToHandwritingIme();
-        else if (!penNear) scheduleRestore();
+        if (penNear) {
+            handler.removeCallbacks(restore);
+            switchToHandwritingIme();
+        } else {
+            scheduleRestore();
+        }
     }
 
     @Override public void onAccessibilityEvent(AccessibilityEvent event) {
@@ -94,6 +101,7 @@ public final class PenAccessibilityService extends AccessibilityService {
     }
 
     private void switchToHandwritingIme() {
+        if (!PenConfig.auto(this)) return;
         String fallback = PenConfig.handwritingIme(this);
         if (fallback == null || fallback.length() == 0) return;
         String current = Settings.Secure.getString(getContentResolver(), Settings.Secure.DEFAULT_INPUT_METHOD);
@@ -112,13 +120,16 @@ public final class PenAccessibilityService extends AccessibilityService {
 
     private void scheduleRestore() {
         handler.removeCallbacks(restore);
-        handler.postDelayed(restore, Math.max(500L, PenConfig.restoreMs(this)));
+        if (!penNear) handler.postDelayed(restore, PenConfig.restoreMs(this));
     }
 
     private void restoreNormalIme() {
         handler.removeCallbacks(restore);
         String normal = PenConfig.normalIme(this);
-        if (normal != null && normal.length() > 0) {
+        String fallback = PenConfig.handwritingIme(this);
+        String current = Settings.Secure.getString(getContentResolver(), Settings.Secure.DEFAULT_INPUT_METHOD);
+        if (normal != null && !normal.isEmpty() && fallback != null && fallback.equals(current)
+                && !normal.equals(current)) {
             Settings.Secure.putString(getContentResolver(), Settings.Secure.DEFAULT_INPUT_METHOD, normal);
             Log.i(TAG, "restored normal IME: " + normal);
         }

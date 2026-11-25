@@ -47,6 +47,7 @@ public final class SettingsActivity extends Activity {
         super.onCreate(state);
         setTitle("Y700 手写笔控制");
         final SharedPreferences prefs = PenConfig.prefs(this);
+        PenConfig.migrateRestoreMs(this);
 
         ScrollView scroll = new ScrollView(this);
         scroll.setBackgroundColor(0xfff7f8fa);
@@ -86,13 +87,20 @@ public final class SettingsActivity extends Activity {
         final Spinner normal = spinner(autoCard, "常用输入法", labels, indexOf(PenConfig.normalIme(this)));
         final Spinner handwriting = spinner(autoCard, "手写回退输入法", labels, indexOf(PenConfig.handwritingIme(this)));
 
-        final TextView delayLabel = text("停止书写后恢复：" + (PenConfig.restoreMs(this) / 1000L) + " 秒", 14, 0xff333333);
-        final SeekBar delay = new SeekBar(this); delay.setMax(145); delay.setProgress((int) Math.max(0, Math.min(145, PenConfig.restoreMs(this) / 100L - 5)));
+        final TextView delayLabel = text(restoreDelayLabel(PenConfig.restoreMs(this)), 14, 0xff333333);
+        final SeekBar delay = new SeekBar(this);
+        delay.setMax(145);
+        delay.setProgress(PenConfig.restoreMs(this) / 100 - 5);
         autoCard.addView(delayLabel); autoCard.addView(delay, new LinearLayout.LayoutParams(-1, -2));
         delay.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             public void onProgressChanged(SeekBar bar, int value, boolean fromUser) {
-                long ms = (value + 5L) * 100L; prefs.edit().putLong(PenConfig.RESTORE_MS, ms).apply();
-                delayLabel.setText("停止书写后恢复：" + String.format(java.util.Locale.ROOT, "%.1f", ms / 1000.0) + " 秒");
+                int ms = (value + 5) * 100;
+                if (fromUser && !PenConfig.setRestoreMs(SettingsActivity.this, ms)) {
+                    Toast.makeText(SettingsActivity.this, "无法保存恢复延时", Toast.LENGTH_SHORT).show();
+                    bar.setProgress(PenConfig.restoreMs(SettingsActivity.this) / 100 - 5);
+                    return;
+                }
+                delayLabel.setText(restoreDelayLabel(ms));
             }
             public void onStartTrackingTouch(SeekBar b) {} public void onStopTrackingTouch(SeekBar b) {}
         });
@@ -103,7 +111,7 @@ public final class SettingsActivity extends Activity {
             String n = imeIds.get(normal.getSelectedItemPosition()); String h = imeIds.get(handwriting.getSelectedItemPosition());
             if (n.equals(h)) { Toast.makeText(this, "常用与手写输入法相同，无需自动回退", Toast.LENGTH_LONG).show(); }
             prefs.edit().putString(PenConfig.NORMAL_IME, n).putString(PenConfig.HANDWRITING_IME, h).apply();
-            putGlobalString("y700_pen_normal_ime", n);
+            putGlobalString("y700_pen_module_normal_ime", n);
             putGlobalString("y700_pen_handwriting_ime", h);
             if (getGlobalInt("y700_pen_near", 0) == 0) {
                 Settings.Secure.putString(getContentResolver(), Settings.Secure.DEFAULT_INPUT_METHOD, n);
@@ -122,6 +130,14 @@ public final class SettingsActivity extends Activity {
         addSecureSwitch(systemCard, "允许应用显示笔悬停指针（ColorOS 空白处默认无小圆点）", "stylus_pointer_icon_enabled", true);
         addGlobalSwitch(systemCard, "补全全局悬停小圆点（需 LSPosed 系统框架作用域和重启）", "y700_pen_custom_hover_cursor", true);
         addGlobalSwitch(systemCard, "右上角下扫随手写", "ipe_pencil_swipe_function", true);
+        Button roulette = new Button(this);
+        styleSecondary(roulette);
+        Runnable updateRouletteLabel = () -> roulette.setText(
+                "不弹轮盘的应用（" + RouletteConfig.read(this).size() + "）");
+        updateRouletteLabel.run();
+        systemCard.addView(roulette, buttonParams());
+        roulette.setOnClickListener(v -> RouletteAppPicker.show(this, updateRouletteLabel));
+
         Button official = new Button(this); official.setText("打开 ColorOS 官方手写笔设置"); styleSecondary(official); systemCard.addView(official, buttonParams());
         official.setOnClickListener(v -> {
             try {
@@ -134,6 +150,10 @@ public final class SettingsActivity extends Activity {
         statusCard.addView(text("压感：NVT 驱动已报告 0–4095，Android 已归一化为 0–1；不在这里伪造压力曲线。\n低延迟：需要 Lenovo touchscreen HAL 在下次重启后启动并执行 Pen Mode；高报点率保持只读，以免覆盖你的触摸采样率超频。\nColorOS 笔记画笔：当前是 libSuniaEngine.so 的 EGL 原生崩溃，和输入法回退无关。", 14, 0xff555555));
 
         setContentView(scroll);
+    }
+
+    private String restoreDelayLabel(int ms) {
+        return String.format(java.util.Locale.ROOT, "笔离开感应范围后恢复：%.1f 秒", ms / 1000.0);
     }
 
     private boolean supportsStylus(InputMethodInfo info) {
