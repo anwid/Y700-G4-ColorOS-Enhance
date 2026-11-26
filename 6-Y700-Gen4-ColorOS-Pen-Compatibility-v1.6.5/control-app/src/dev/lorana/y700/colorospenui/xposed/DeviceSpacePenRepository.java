@@ -12,6 +12,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.util.Log;
+import android.widget.Toast;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.Collections;
@@ -26,6 +27,7 @@ final class DeviceSpacePenRepository {
     private static boolean registered;
     private static volatile Context applicationContext;
     private static volatile Object nativeDeviceObserver;
+    private static volatile Object sharedDao;
 
     static void install(ClassLoader loader) {
         try {
@@ -36,7 +38,7 @@ final class DeviceSpacePenRepository {
                     Context context = applicationContext;
                     if (context == null || param.args.length != 1
                             || !DeviceSpacePenHook.CARD_ID.equals(param.args[0])) return;
-                    openPenSettings(context);
+                    openNativePanel(context);
                     param.setResult(new Bundle());
                 }
             });
@@ -48,7 +50,7 @@ final class DeviceSpacePenRepository {
                             ? (Intent) param.args[0] : activity.getIntent();
                     if (intent != null && DeviceSpacePenHook.CARD_ID.equals(
                             intent.getStringExtra("device_id"))) {
-                        openPenSettings(activity);
+                        openNativePanel(activity);
                         activity.finish();
                     }
                 }
@@ -77,15 +79,39 @@ final class DeviceSpacePenRepository {
         }
     }
 
-    private static void openPenSettings(Context context) {
-        Intent settings = new Intent()
-                .setClassName("dev.lorana.y700.colorospenui.xposed",
-                        "dev.lorana.y700.colorospenui.xposed.SettingsActivity")
-                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+    private static void openNativePanel(Context context) {
         try {
-            context.startActivity(settings);
-        } catch (RuntimeException error) {
-            Log.w(TAG, "Could not open Y700 pen settings", error);
+            Object dao = sharedDao;
+            Object device = dao == null ? null : dao.getClass().getMethod("c", String.class)
+                    .invoke(dao, DeviceSpacePenHook.CARD_ID);
+            if (device == null) throw new IllegalStateException("Pencil record is unavailable");
+            Class<?> type = device.getClass();
+            String address = (String) type.getMethod("getMac").invoke(device);
+            if (!BluetoothAdapter.checkBluetoothAddress(address)) {
+                throw new IllegalStateException("Pencil address is unavailable");
+            }
+            int level = -1;
+            boolean charging = false;
+            List<?> batteries = (List<?>) type.getMethod("getBatteryList").invoke(device);
+            if (!batteries.isEmpty()) {
+                Object battery = batteries.get(0);
+                level = (Integer) battery.getClass().getMethod("getValue").invoke(battery);
+                charging = (Boolean) battery.getClass().getMethod("getCharge").invoke(battery);
+            }
+            boolean connected = (Boolean) type.getMethod("isConnected").invoke(device);
+            Intent panel = new Intent(NativePenPanelHook.ACTION)
+                    .setClassName(NativePenPanelHook.PACKAGE, NativePenPanelHook.PANEL)
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    .putExtra(NativePenPanelHook.BRIDGE, true)
+                    .putExtra(NativePenPanelHook.MAC, address)
+                    .putExtra(NativePenPanelHook.BATTERY, level)
+                    .putExtra(NativePenPanelHook.CHARGING, charging)
+                    .putExtra(NativePenPanelHook.CONNECTED, connected);
+            context.startActivity(panel);
+        } catch (ReflectiveOperationException | RuntimeException error) {
+            Log.w(TAG, "Could not open the native pencil panel", error);
+            new Handler(context.getMainLooper()).post(() ->
+                    Toast.makeText(context, "暂时无法打开原生手写笔卡片", Toast.LENGTH_SHORT).show());
         }
     }
 
@@ -96,6 +122,7 @@ final class DeviceSpacePenRepository {
             if (context.getPackageManager().getPackageInfo(DeviceSpacePenHook.PACKAGE, 0)
                     .getLongVersionCode() != DeviceSpacePenHook.SUPPORTED_VERSION) return;
             applicationContext = context.getApplicationContext();
+            sharedDao = dao;
             if (!DeviceSpacePenHook.PACKAGE.equals(Application.getProcessName())) {
                 registered = true;
                 return;

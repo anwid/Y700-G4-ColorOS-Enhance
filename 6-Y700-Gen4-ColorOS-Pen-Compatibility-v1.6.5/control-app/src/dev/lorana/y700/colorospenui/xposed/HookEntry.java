@@ -46,7 +46,8 @@ public final class HookEntry implements IXposedHookLoadPackage {
             hookRouletteReceiver(p.classLoader);
             return;
         }
-        if (!"com.oplus.ipemanager".equals(p.packageName)) return;
+        if (!NativePenPanelHook.PACKAGE.equals(p.packageName)) return;
+        NativePenPanelHook.install(p.classLoader);
         try {
             Method hook = XposedHelpers.class.getMethod("findAndHookMethod", String.class, ClassLoader.class, String.class, Object[].class);
             Object[] args = new Object[]{ClassLoader.class, String.class, Context.class, new XC_MethodHook() {
