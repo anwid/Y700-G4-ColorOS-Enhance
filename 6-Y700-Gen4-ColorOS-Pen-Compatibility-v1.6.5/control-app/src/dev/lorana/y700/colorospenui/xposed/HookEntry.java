@@ -30,6 +30,10 @@ public final class HookEntry implements IXposedHookLoadPackage {
     private static volatile boolean gamePenHookArmed;
 
     @Override public void handleLoadPackage(XC_LoadPackage.LoadPackageParam p) {
+        if (DeviceSpacePenHook.PACKAGE.equals(p.packageName)) {
+            DeviceSpacePenHook.install(p.classLoader);
+            return;
+        }
         if (GboardImeHook.PACKAGE.equals(p.packageName)) {
             GboardImeHook.install(p.classLoader);
             return;

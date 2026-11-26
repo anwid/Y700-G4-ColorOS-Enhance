@@ -23,10 +23,10 @@ for CANDIDATE in /data/adb/lspd/cli /data/adb/modules/zygisk_vector/cli; do
 done
 if [ -n "$CLI" ]; then
     "$CLI" modules enable "$PEN_PKG" >/dev/null 2>&1
-    "$CLI" scope set "$PEN_PKG" system/0 com.oplus.ipemanager/0 com.oplus.healthservice/0 com.google.android.inputmethod.latin/0 >/dev/null 2>&1
-    ui_print "- Vector scope: system/0 + com.oplus.ipemanager/0 + com.oplus.healthservice/0 + com.google.android.inputmethod.latin/0"
+    "$CLI" scope set "$PEN_PKG" system/0 com.oplus.ipemanager/0 com.oplus.healthservice/0 com.google.android.inputmethod.latin/0 com.heytap.mydevices/0 >/dev/null 2>&1
+    ui_print "- Vector scope: system/0 + com.oplus.ipemanager/0 + com.oplus.healthservice/0 + com.google.android.inputmethod.latin/0 + com.heytap.mydevices/0"
 else
-    ui_print "- LSPosed: manually enable System Framework, com.oplus.ipemanager, com.oplus.healthservice and Gboard"
+    ui_print "- LSPosed: manually enable System Framework, com.oplus.ipemanager, com.oplus.healthservice, Gboard and com.heytap.mydevices"
 fi
 
 for SCRIPT in customize.sh service.sh post-fs-data.sh action.sh uninstall.sh \

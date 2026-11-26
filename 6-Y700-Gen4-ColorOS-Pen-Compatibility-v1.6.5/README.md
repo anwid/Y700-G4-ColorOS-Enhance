@@ -54,6 +54,13 @@ ZIP 根目录包含模块脚本和 `system/app/dev.lorana.y700.colorospenui.xpos
 - `com.oplus.ipemanager/0`
 - `com.oplus.healthservice/0`
 - `com.google.android.inputmethod.latin/0`（Gboard 键盘交接）
+- `com.heytap.mydevices/0`（设备空间）
+
+### 设备空间手写笔卡片
+
+设备空间 17.4.15（1704015）加载设备列表时，Hook 检查已连接的 Lenovo Tab Pen Plus，并使用设备空间自己的 `PENCIL` 卡片类型和单电池组件显示 OPPO Pencil。电量来自 ColorOS 蓝牙服务的缓存。设备空间页面收到该笔的电量变化或 ACL 连接状态广播时，复用原生卡片刷新入口；未上报时隐藏电量。若列表已有原生手写笔卡片，则保留原生列表。LSPosed 需勾选「设备空间」（`com.heytap.mydevices`），再重新打开其进程。
+
+桌面小组件和设备空间共用设备库里的 `y700_lenovo_tab_pen_plus` 记录。模块通过设备空间原有的数据访问层写入笔的连接状态和单电池读数，并沿用其数据变化通知。充电标记来自笔通过 BLE GATT 电源状态特征（`0x2A1A`）上报的充电位。控制中心通过设备空间的原生设备更新回调接收新的电量和充电状态。小组件可在「选择设备」中选择 OPPO Pencil；从控制中心或小组件点击笔卡片都会打开「Y700 手写笔控制」。
 
 ### 手写与常用输入法
 

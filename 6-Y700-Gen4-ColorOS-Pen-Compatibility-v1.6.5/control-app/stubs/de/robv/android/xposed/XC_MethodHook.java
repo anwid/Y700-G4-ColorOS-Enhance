@@ -6,6 +6,7 @@ public abstract class XC_MethodHook {
         public Object thisObject;
         public Object[] args;
         public Object getResult() { return null; }
+        public boolean hasThrowable() { return false; }
         public void setResult(Object result) {}
     }
 }
