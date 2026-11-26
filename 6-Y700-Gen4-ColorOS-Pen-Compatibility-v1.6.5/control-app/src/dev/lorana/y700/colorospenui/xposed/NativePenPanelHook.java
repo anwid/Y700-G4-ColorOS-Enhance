@@ -2,11 +2,14 @@ package dev.lorana.y700.colorospenui.xposed;
 
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.util.Log;
 import android.view.Menu;
 import java.lang.ref.WeakReference;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedBridge;
@@ -19,6 +22,8 @@ final class NativePenPanelHook {
     static final String BRIDGE = "dev.lorana.y700.extra.NATIVE_PEN_PANEL";
     static final String BATTERY = "dev.lorana.y700.extra.PEN_BATTERY";
     static final String CHARGING = "dev.lorana.y700.extra.PEN_CHARGING";
+    static final String STATE_CHANGED = "dev.lorana.y700.action.PEN_STATE_CHANGED";
+    static final String STATE_PERMISSION = "android.permission.BLUETOOTH_PRIVILEGED";
     static final String CONNECTED = "dev.lorana.y700.extra.PEN_CONNECTED";
 
     private static final String IPE = PACKAGE + ".btadsorb.";
@@ -27,6 +32,7 @@ final class NativePenPanelHook {
     static void install(ClassLoader loader) {
         try {
             Class<?> panel = loader.loadClass(PANEL);
+            PanelUpdates updates = new PanelUpdates(loader);
             XposedBridge.hookAllMethods(panel, "onCreate", new XC_MethodHook() {
                 @Override protected void beforeHookedMethod(MethodHookParam param) {
                     Activity activity = (Activity) param.thisObject;
@@ -39,7 +45,21 @@ final class NativePenPanelHook {
             });
             XposedBridge.hookAllMethods(panel, "onDestroy", new XC_MethodHook() {
                 @Override protected void afterHookedMethod(MethodHookParam param) {
-                    if (active.get() == param.thisObject) active.clear();
+                    if (active.get() == param.thisObject) {
+                        updates.detach((Activity) param.thisObject);
+                        active.clear();
+                    }
+                }
+            });
+
+            Class<?> panelFragment = loader.loadClass(IPE + "pencilPanel.fragment.g0");
+            Field viewModel = panelFragment.getDeclaredField("mViewModel");
+            viewModel.setAccessible(true);
+            XposedBridge.hookAllMethods(panelFragment, "onCreate", new XC_MethodHook() {
+                @Override protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                    Activity activity = active.get();
+                    if (param.hasThrowable() || activity == null || !isBridgedPanel(param.thisObject)) return;
+                    updates.attach(activity, viewModel.get(param.thisObject));
                 }
             });
 
@@ -83,10 +103,7 @@ final class NativePenPanelHook {
             @Override protected void afterHookedMethod(MethodHookParam param) throws Throwable {
                 Object fragment = param.thisObject;
                 if (param.hasThrowable() || !isBridgedPanel(fragment)) return;
-                for (String key : new String[] {"double_click_pencil", "double_click_pencil2",
-                        "double_click_jump", "double_click_jump_iceland", "disconnect_device"}) {
-                    removePreference(findPreference(fragment, key));
-                }
+                removePreference(findPreference(fragment, "disconnect_device"));
             }
         });
 
@@ -146,6 +163,60 @@ final class NativePenPanelHook {
         Class<?> preferenceType = preference.getClass().getClassLoader()
                 .loadClass("androidx.preference.Preference");
         parent.getClass().getMethod("removePreference", preferenceType).invoke(parent, preference);
+    }
+
+    private static final class PanelUpdates extends BroadcastReceiver {
+        private final Field levelData;
+        private final Field connectionData;
+        private final Method postValue;
+        private final Method setCharging;
+        private WeakReference<Activity> owner = new WeakReference<>(null);
+        private Object model;
+
+        PanelUpdates(ClassLoader loader) throws ReflectiveOperationException {
+            Class<?> modelType = loader.loadClass("b3.f");
+            levelData = modelType.getField("i");
+            connectionData = modelType.getField("j");
+            postValue = levelData.getType().getMethod("postValue", Object.class);
+            setCharging = modelType.getMethod("k", boolean.class);
+        }
+
+        void attach(Activity activity, Object viewModel) {
+            Activity previous = owner.get();
+            if (previous != activity) {
+                if (previous != null) detach(previous);
+                activity.registerReceiver(this, new IntentFilter(STATE_CHANGED), STATE_PERMISSION,
+                        null, 2); // RECEIVER_EXPORTED
+                owner = new WeakReference<>(activity);
+            }
+            model = viewModel;
+        }
+
+        void detach(Activity activity) {
+            if (owner.get() != activity) return;
+            activity.unregisterReceiver(this);
+            owner.clear();
+            model = null;
+        }
+
+        @Override public void onReceive(Context context, Intent state) {
+            Activity activity = owner.get();
+            if (activity == null || model == null) return;
+            Intent snapshot = activity.getIntent();
+            String expected = snapshot.getStringExtra(MAC);
+            if (expected == null || !expected.equalsIgnoreCase(state.getStringExtra(MAC))) return;
+            int level = state.getIntExtra(BATTERY, -1);
+            boolean connected = state.getBooleanExtra(CONNECTED, false);
+            boolean charging = state.getBooleanExtra(CHARGING, false);
+            snapshot.putExtra(BATTERY, level).putExtra(CONNECTED, connected).putExtra(CHARGING, charging);
+            try {
+                postValue.invoke(levelData.get(model), level);
+                postValue.invoke(connectionData.get(model), connected ? 2 : 0);
+                setCharging.invoke(model, charging);
+            } catch (ReflectiveOperationException | RuntimeException error) {
+                Log.w("Y700DeviceSpace", "Could not refresh the native pencil panel", error);
+            }
+        }
     }
 
     private interface PanelValue {

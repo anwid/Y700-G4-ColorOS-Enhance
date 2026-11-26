@@ -24,7 +24,6 @@ public final class HookEntry implements IXposedHookLoadPackage {
     private static final String PENCIL_SINGLE_CLICK = "com.oplus.ipemanager.action.PENCIL_SINGLE_CLICK";
     private static final String PENCIL_DOUBLE_CLICK = "com.oplus.ipemanager.action.PENCIL_DOUBLE_CLICK";
     private static final int ROULETTE_ACTION = 4;
-    private static final String TOUCHNOTES_PAD = "com.newskyer.draw.PadActivity";
     private static volatile Context systemContext;
     private static volatile boolean cursorLogged;
     private static volatile boolean gamePenHookArmed;
@@ -39,6 +38,7 @@ public final class HookEntry implements IXposedHookLoadPackage {
             return;
         }
         if ("android".equals(p.packageName)) {
+            LenovoPenButtonHook.install(p.classLoader, () -> systemContext);
             hookSystemStylusCursor(p.classLoader);
             return;
         }
@@ -48,6 +48,7 @@ public final class HookEntry implements IXposedHookLoadPackage {
         }
         if (!NativePenPanelHook.PACKAGE.equals(p.packageName)) return;
         NativePenPanelHook.install(p.classLoader);
+        IpePenConnectionHook.install(p.classLoader);
         try {
             Method hook = XposedHelpers.class.getMethod("findAndHookMethod", String.class, ClassLoader.class, String.class, Object[].class);
             Object[] args = new Object[]{ClassLoader.class, String.class, Context.class, new XC_MethodHook() {
@@ -84,11 +85,6 @@ public final class HookEntry implements IXposedHookLoadPackage {
                         String packageName = topActivity.getPackageName();
                         if (!RouletteConfig.read(context).contains(packageName)) return;
                         param.setResult(null);
-                        if (singleRoulette && RouletteConfig.TOUCHNOTES_PACKAGE.equals(packageName)
-                                && TOUCHNOTES_PAD.equals(topActivity.getClassName())) {
-                            context.sendBroadcast(new Intent(PENCIL_DOUBLE_CLICK).setPackage(packageName));
-                            Log.i("Y700PenUI", "Forwarded single click directly to TouchNotes");
-                        }
                         Log.i("Y700PenUI", "Skipped ColorOS pen roulette for " + topActivity.flattenToShortString());
                     } catch (RuntimeException error) {
                         Log.w("Y700PenUI", "Could not route the pen button event", error);

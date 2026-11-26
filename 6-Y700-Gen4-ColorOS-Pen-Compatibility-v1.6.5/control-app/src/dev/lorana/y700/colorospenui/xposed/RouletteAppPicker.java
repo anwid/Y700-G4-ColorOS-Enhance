@@ -71,6 +71,11 @@ final class RouletteAppPicker {
     private void open(Runnable onSaved) {
         LinearLayout layout = new LinearLayout(activity);
         layout.setOrientation(LinearLayout.VERTICAL);
+        TextView description = new TextView(activity);
+        description.setText("按一次笔按钮，向当前所选应用发送一次 OPPO Pencil 双击。");
+        description.setPadding(dp(16), dp(8), dp(16), dp(8));
+        layout.addView(description, new LinearLayout.LayoutParams(-1, -2));
+
         EditText search = new EditText(activity);
         search.setSingleLine(true);
         search.setHint("搜索应用名、包名或拼音");
@@ -142,7 +147,7 @@ final class RouletteAppPicker {
         updateStatus(status);
 
         AlertDialog dialog = new AlertDialog.Builder(activity)
-                .setTitle("选择不弹轮盘的应用")
+                .setTitle("按键直通应用")
                 .setView(layout)
                 .setNegativeButton("取消", null)
                 .setPositiveButton("保存", null)
@@ -175,7 +180,7 @@ final class RouletteAppPicker {
                     return;
                 }
             } catch (SecurityException ignored) {}
-            Toast.makeText(activity, "无法保存轮盘设置，请检查笔控模块权限", Toast.LENGTH_LONG).show();
+            Toast.makeText(activity, "无法保存按键直通设置，请检查笔控模块权限", Toast.LENGTH_LONG).show();
         });
     }
 

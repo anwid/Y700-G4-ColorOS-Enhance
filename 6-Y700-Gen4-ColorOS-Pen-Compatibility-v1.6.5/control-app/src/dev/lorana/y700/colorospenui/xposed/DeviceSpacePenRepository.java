@@ -261,6 +261,13 @@ final class DeviceSpacePenRepository {
                     lastPublished = device;
                 }
                 if (changed) {
+                    applicationContext.sendBroadcast(new Intent(NativePenPanelHook.STATE_CHANGED)
+                            .setPackage(NativePenPanelHook.PACKAGE)
+                            .putExtra(NativePenPanelHook.MAC, address)
+                            .putExtra(NativePenPanelHook.BATTERY, level)
+                            .putExtra(NativePenPanelHook.CONNECTED, online)
+                            .putExtra(NativePenPanelHook.CHARGING, chargeMonitor.isCharging()),
+                            NativePenPanelHook.STATE_PERMISSION);
                     Log.i(TAG, "Published shared pencil record (connected=" + online + ", battery=" + level + ")");
                 }
             } catch (ReflectiveOperationException | RuntimeException | LinkageError error) {

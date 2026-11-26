@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="dev.lorana.y700.colorospenui.xposed"
-    android:versionCode="34"
-    android:versionName="0.5.12">
+    android:versionCode="43"
+    android:versionName="0.5.19">
     <uses-sdk android:minSdkVersion="28" android:targetSdkVersion="29" />
     <uses-permission android:name="android.permission.WRITE_SECURE_SETTINGS" />
     <application

@@ -113,7 +113,7 @@ public final class SettingsActivity extends Activity {
         Button roulette = new Button(this);
         styleSecondary(roulette);
         Runnable updateRouletteLabel = () -> roulette.setText(
-                "不弹轮盘的应用（" + RouletteConfig.read(this).size() + "）");
+                "按键直通应用（" + RouletteConfig.read(this).size() + "）");
         updateRouletteLabel.run();
         systemCard.addView(roulette, buttonParams());
         roulette.setOnClickListener(v -> RouletteAppPicker.show(this, updateRouletteLabel));
