@@ -30,7 +30,7 @@ else
 fi
 
 for SCRIPT in customize.sh service.sh post-fs-data.sh action.sh uninstall.sh \
-    accessibility_watchdog.sh pen_game_event_proxy.sh pen_proximity_bridge.sh; do
+    accessibility_watchdog.sh pen_game_event_proxy.sh pen_proximity_bridge.sh pen_button_reconnect.sh; do
     set_perm "$MODPATH/$SCRIPT" 0 0 0755
 done
 set_perm_recursive "$MODPATH/system" 0 0 0755 0644

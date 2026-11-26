@@ -25,6 +25,10 @@ if [ -x "$MODDIR/pen_proximity_bridge.sh" ]; then
     nohup "$MODDIR/pen_proximity_bridge.sh" >/dev/null 2>&1 &
 fi
 
+if [ -x "$MODDIR/pen_button_reconnect.sh" ]; then
+    nohup "$MODDIR/pen_button_reconnect.sh" >/dev/null 2>&1 &
+fi
+
 # Finish package permissions and Vector scope setup after PackageManager is
 # ready.  This is deliberately backgrounded so pen input is never held up by
 # framework startup or by a temporarily unavailable Xposed manager.

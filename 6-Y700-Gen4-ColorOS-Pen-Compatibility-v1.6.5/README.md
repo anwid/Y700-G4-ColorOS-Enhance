@@ -76,6 +76,10 @@ ZIP 根目录包含模块脚本和 `system/app/dev.lorana.y700.colorospenui.xpos
 
 在系统广播投递前识别移植 ROM 的 `gugu_platform_hal` 所发的联想笔单击轮盘事件。ColorOS「轻点两下」设为工具或调色板时，原生双击事件只发给前台应用；设为轮盘时保留 ROM 的原始路由。设为直通的前台应用优先收到定向的 OPPO Pencil 双击事件，并由应用处理。
 
+### 待机重连后的按键恢复
+
+KSU 在开机时用 `inotifyd` 监听输入节点热插拔。联想笔的按键节点出现后，先给 ROM 一秒处理重连。正在运行的 `gugu_platform_hal` 若仍未打开新节点，模块针对该节点请求一次服务重启。恢复后的实体按键继续走 ROM 和现有 LSPosed 路由。可用 `adb logcat -s Y700PenReconnect gugu_platform_hal Y700PenButton` 查看记录。
+
 ### 按键直通应用
 
 在「Y700 手写笔控制 → ColorOS 系统笔功能 → 按键直通应用」可按应用名、包名或拼音搜索，并筛选用户应用或系统应用。保存后，按一次联想笔实体按钮，模块只向名单里的前台应用发送一次原生 OPPO Pencil 双击广播。按键动作由各应用的双击设置决定。享做笔记和 StarNote 使用相同规则。
